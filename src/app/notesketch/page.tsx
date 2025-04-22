@@ -1,6 +1,6 @@
 "use client";
 import { useRef, useState, useEffect } from 'react';
-import { FaPen, FaEraser, FaSave, FaTrash } from 'react-icons/fa';
+import { FaPen, FaEraser, FaSave, FaTrash, FaHome } from 'react-icons/fa';
 
 export default function NoteSketch() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -10,40 +10,66 @@ export default function NoteSketch() {
     const [lineWidth, setLineWidth] = useState(2);
     const contextRef = useRef<CanvasRenderingContext2D | null>(null);
     const [isMobile, setIsMobile] = useState(false);
+    const [isPanning, setIsPanning] = useState(false);
+    const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
+    const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
+    const [homeSquare, setHomeSquare] = useState({ x: 0, y: 0, width: 0, height: 0 });
+    const [scale, setScale] = useState(1);
 
     useEffect(() => {
         const checkMobile = () => {
             setIsMobile(window.innerWidth <= 768);
         };
-        
+
         checkMobile();
         window.addEventListener('resize', checkMobile);
-        
+
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
     useEffect(() => {
         const canvas = canvasRef.current;
+        if (canvas) {
+            const rect = canvas.getBoundingClientRect();
+            setHomeSquare({
+                x: 0,
+                y: 0,
+                width: rect.width,
+                height: rect.height,
+            });
+            setCanvasOffset({ x: 0, y: 0 });
+        }
+    }, []);
+
+    const resetToHomeSquare = () => {
+        setCanvasOffset({ x: 0, y: 0 });
+    };
+
+    const resizeCanvas = () => {
+        const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const resizeCanvas = () => {
-            canvas.width = canvas.offsetWidth * 2;
-            canvas.height = canvas.offsetHeight * 2;
-            canvas.style.width = `${canvas.offsetWidth}px`;
-            canvas.style.height = `${canvas.offsetHeight}px`;
-            
-            const context = canvas.getContext('2d');
-            if (context) {
-                context.scale(2, 2);
-                context.lineCap = 'round';
-                context.strokeStyle = tool === 'eraser' ? '#FFFFFF' : color;
-                context.lineWidth = lineWidth;
-            }
-        };
+        canvas.width = 10000;
+        canvas.height = 10000;
+        canvas.style.width = `${canvas.width / 2}px`;
+        canvas.style.height = `${canvas.height / 2}px`;
+
+        const context = canvas.getContext('2d');
+        if (context) {
+            context.scale(2, 2);
+            context.lineCap = 'round';
+            context.strokeStyle = tool === 'eraser' ? '#FFFFFF' : color;
+            context.lineWidth = lineWidth;
+        }
+    };
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
-        
+
         const context = canvas.getContext('2d');
         if (context) {
             context.scale(2, 2);
@@ -52,7 +78,7 @@ export default function NoteSketch() {
             context.lineWidth = lineWidth;
             contextRef.current = context;
         }
-        
+
         return () => window.removeEventListener('resize', resizeCanvas);
     }, [color, lineWidth, tool]);
 
@@ -62,6 +88,13 @@ export default function NoteSketch() {
             contextRef.current.lineWidth = lineWidth;
         }
     }, [tool, color, lineWidth]);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (canvas) {
+            canvas.style.transform = `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${scale})`;
+        }
+    }, [canvasOffset, scale]);
 
     const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
         const { offsetX, offsetY } = getCoordinates(e);
@@ -73,6 +106,7 @@ export default function NoteSketch() {
     const draw = (e: React.MouseEvent | React.TouchEvent) => {
         if (!isDrawing) return;
         const { offsetX, offsetY } = getCoordinates(e);
+        console.log(offsetX, offsetY);
         contextRef.current?.lineTo(offsetX, offsetY);
         contextRef.current?.stroke();
     };
@@ -82,20 +116,64 @@ export default function NoteSketch() {
         setIsDrawing(false);
     };
 
+    const startPanning = (e: React.MouseEvent | React.TouchEvent) => {
+        if ('touches' in e && e.touches.length === 2) {
+            e.preventDefault();
+            setIsPanning(true);
+            setPanStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+        } else if ('button' in e && (e.button === 2 || e.button === 1)) {
+            e.preventDefault();
+            setIsPanning(true);
+            setPanStart({ x: e.clientX, y: e.clientY });
+        }
+    };
+
+    const panCanvas = (e: React.MouseEvent | React.TouchEvent) => {
+        if (!isPanning || !panStart) return;
+
+        let currentX, currentY;
+        if ('touches' in e && e.touches.length === 2) {
+            e.preventDefault();
+            currentX = e.touches[0].clientX;
+            currentY = e.touches[0].clientY;
+        } else if ('clientX' in e) {
+            currentX = e.clientX;
+            currentY = e.clientY;
+        } else {
+            return;
+        }
+
+        const deltaX = currentX - panStart.x;
+        const deltaY = currentY - panStart.y;
+
+        setCanvasOffset((prev) => ({
+            x: prev.x + deltaX,
+            y: prev.y + deltaY,
+        }));
+
+        setPanStart({ x: currentX, y: currentY });
+    };
+
+    const stopPanning = () => {
+        setIsPanning(false);
+        setPanStart(null);
+    };
+
     const getCoordinates = (e: React.MouseEvent | React.TouchEvent) => {
         const canvas = canvasRef.current!;
         const rect = canvas.getBoundingClientRect();
-        
+        const scaleX = canvas.width / rect.width / 2;
+        const scaleY = canvas.height / rect.height / 2;
+
         if ('touches' in e) {
-            e.preventDefault();
             return {
-                offsetX: e.touches[0].clientX - rect.left,
-                offsetY: e.touches[0].clientY - rect.top
+                offsetX: (e.touches[0].clientX - rect.left) * scaleX,
+                offsetY: (e.touches[0].clientY - rect.top) * scaleY,
             };
         } else {
             return {
-                offsetX: e.nativeEvent.offsetX,
-                offsetY: e.nativeEvent.offsetY
+                offsetX: (e.nativeEvent.clientX - rect.left) * scaleX,
+                offsetY: (e.nativeEvent.clientY - rect.top) * scaleY,
             };
         }
     };
@@ -119,35 +197,59 @@ export default function NoteSketch() {
         }
     };
 
+    const handleWheelZoom = (e: React.WheelEvent) => {
+        if (e.ctrlKey || e.button === 1) {
+            e.preventDefault();
+            const zoomFactor = 0.1;
+            const newScale = Math.min(Math.max(scale - e.deltaY * zoomFactor * 0.01, 0.5), 10);
+            setScale(newScale);
+        }
+    };
+
     return (
         <div className="flex flex-col h-screen bg-gray-50">
             <div className="p-2 sm:p-4 bg-white shadow-sm">
                 <h1 className="text-xl sm:text-2xl font-semibold text-gray-800">Note Sketch</h1>
             </div>
-            
-            <div className="flex-1 relative overflow-hidden touch-none">
+
+            <div
+                className="flex-1 relative overflow-hidden touch-none"
+                onWheel={handleWheelZoom}
+            >
                 <canvas
                     ref={canvasRef}
                     className="absolute top-0 left-0 w-full h-full bg-white border border-gray-300"
-                    onMouseDown={startDrawing}
-                    onMouseMove={draw}
-                    onMouseUp={stopDrawing}
-                    onMouseLeave={stopDrawing}
+                    onMouseDown={(e) => {
+                        if (e.button === 2 || e.button === 1) {
+                            startPanning(e);
+                        } else {
+                            startDrawing(e);
+                        }
+                    }}
+                    onMouseMove={(e) => {
+                        if (isPanning) panCanvas(e);
+                        else draw(e);
+                    }}
+                    onMouseUp={(e) => {
+                        if (isPanning) stopPanning();
+                        else stopDrawing();
+                    }}
+                    onContextMenu={(e) => e.preventDefault()}
                     onTouchStart={(e) => {
-                        e.preventDefault();
-                        startDrawing(e);
+                        if (e.touches.length === 2) startPanning(e);
+                        else startDrawing(e);
                     }}
                     onTouchMove={(e) => {
-                        e.preventDefault();
-                        draw(e);
+                        if (isPanning) panCanvas(e);
+                        else draw(e);
                     }}
                     onTouchEnd={(e) => {
-                        e.preventDefault();
-                        stopDrawing();
+                        if (isPanning) stopPanning();
+                        else stopDrawing();
                     }}
                     onTouchCancel={(e) => {
-                        e.preventDefault();
-                        stopDrawing();
+                        if (isPanning) stopPanning();
+                        else stopDrawing();
                     }}
                 />
             </div>
@@ -202,6 +304,13 @@ export default function NoteSketch() {
                         >
                             <FaSave className="text-green-600" />
                             <span className="ml-2 hidden sm:inline">Save</span>
+                        </button>
+                        <button
+                            onClick={resetToHomeSquare}
+                            className="p-3 bg-blue-100 rounded flex-1 flex justify-center"
+                        >
+                            <FaHome className="text-blue-600" />
+                            <span className="ml-2 hidden sm:inline">Home</span>
                         </button>
                     </div>
                 </div>
