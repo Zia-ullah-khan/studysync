@@ -54,7 +54,7 @@ export default function NoteSketch() {
         }
         
         return () => window.removeEventListener('resize', resizeCanvas);
-    }, []);
+    }, [color, lineWidth, tool]);
 
     useEffect(() => {
         if (contextRef.current) {
