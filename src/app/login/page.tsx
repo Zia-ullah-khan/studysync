@@ -59,7 +59,6 @@ function LoginContent() {
             {isLogin ? 'Welcome back' : 'Create your account'}
           </h1>
           
-          {/* OAuth Buttons */}
           <div className="space-y-3 mb-6">
             <button className="w-full flex items-center justify-center gap-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -88,7 +87,6 @@ function LoginContent() {
             </div>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>

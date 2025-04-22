@@ -4,7 +4,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 export async function login(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { email, password } = req.body;
-    // Authentication logic here
     res.status(200).json({ success: true, message: 'Login successful' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Authentication failed' });
@@ -14,18 +13,16 @@ export async function login(req: NextApiRequest, res: NextApiResponse) {
 export async function signup(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { email, password } = req.body;
-    // User creation logic here
     res.status(200).json({ success: true, message: 'Account created successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Registration failed' });
   }
 }
 
-// 🧠 EduBot API endpoints
+// EduBot API endpoints
 export async function chatWithAI(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { prompt, context, userId } = req.body;
-    // AI chat logic here (OpenAI/Gemini integration)
     res.status(200).json({
       response: 'This is a sample AI response',
       sources: ['Source 1', 'Source 2']
@@ -38,7 +35,6 @@ export async function chatWithAI(req: NextApiRequest, res: NextApiResponse) {
 export async function generateFlashcards(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { topic, count, userId } = req.body;
-    // Flashcard generation logic
     const flashcards = [
       { question: 'Sample question 1?', answer: 'Sample answer 1' },
       { question: 'Sample question 2?', answer: 'Sample answer 2' }
@@ -52,7 +48,6 @@ export async function generateFlashcards(req: NextApiRequest, res: NextApiRespon
 export async function generateQuiz(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { topic, difficulty, questionCount, userId } = req.body;
-    // Quiz generation logic
     const quiz = {
       id: 'quiz-123',
       questions: [
@@ -70,10 +65,9 @@ export async function generateQuiz(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-// ✍️ SmartNotes API endpoints
+// SmartNotes API endpoints
 export async function uploadAudio(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // Audio file upload and processing logic
     res.status(200).json({ 
       success: true, 
       fileId: 'audio-123',
@@ -87,7 +81,6 @@ export async function uploadAudio(req: NextApiRequest, res: NextApiResponse) {
 export async function startRecording(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { userId, sessionName } = req.body;
-    // Real-time recording session creation
     res.status(200).json({ 
       sessionId: 'recording-123',
       websocketUrl: 'wss://api.studysync.com/recordings/socket' 
@@ -100,7 +93,6 @@ export async function startRecording(req: NextApiRequest, res: NextApiResponse) 
 export async function transcribeAudio(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { fileId, language = 'en' } = req.body;
-    // Audio transcription using Whisper API
     res.status(200).json({
       transcript: 'This is a sample transcript of the recorded lecture.',
       confidence: 0.95,
@@ -114,7 +106,6 @@ export async function transcribeAudio(req: NextApiRequest, res: NextApiResponse)
 export async function summarizeTranscript(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { transcript, maxPoints = 5 } = req.body;
-    // AI summarization logic
     res.status(200).json({
       summary: 'This is a concise summary of the lecture content.',
       keyPoints: [
@@ -128,11 +119,10 @@ export async function summarizeTranscript(req: NextApiRequest, res: NextApiRespo
   }
 }
 
-// 📊 LearnSphere API endpoints
+// LearnSphere API endpoints
 export async function getUserDashboard(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { userId } = req.query;
-    // User dashboard data retrieval
     res.status(200).json({
       learningStreak: 7,
       topicsStudied: 12,
@@ -149,7 +139,6 @@ export async function getUserDashboard(req: NextApiRequest, res: NextApiResponse
 export async function getTopicMastery(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { userId, subject } = req.query;
-    // Topic mastery data retrieval
     res.status(200).json({
       subject,
       topics: [
@@ -165,7 +154,6 @@ export async function getTopicMastery(req: NextApiRequest, res: NextApiResponse)
 export async function getRecommendations(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { userId } = req.query;
-    // Recommendation generation logic
     res.status(200).json({
       recommendedTopics: [
         { topic: 'Organic Chemistry', reason: 'Low mastery level' },
