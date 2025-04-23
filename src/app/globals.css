@@ -36,3 +36,15 @@ html {
 .text-pretty {
   text-wrap: pretty;
 }
+
+.perspective {
+  perspective: 1000px;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+.transform {
+  transform-style: preserve-3d;
+}

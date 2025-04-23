@@ -1,11 +1,23 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+// API base URL
+const API_BASE_URL = 'http://localhost:3001';
+
 // Auth related endpoints
 export async function login(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { _email: email, _password: password } = req.body;
     console.log('Login attempt with:', { email, password });
-    res.status(200).json({ success: true, message: 'Login successful' });
+    
+    // Call the API at localhost:3001
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    
+    const data = await response.json();
+    res.status(200).json(data);
   } catch (_error) {
     console.error('Login error:', _error);
     res.status(500).json({ success: false, message: 'Authentication failed' });
@@ -16,7 +28,16 @@ export async function signup(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { _email: email, _password: password } = req.body;
     console.log('Signup attempt with:', { email, password });
-    res.status(200).json({ success: true, message: 'Account created successfully' });
+    
+    // Call the API at localhost:3001
+    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    
+    const data = await response.json();
+    res.status(200).json(data);
   } catch (_error) {
     console.error('Signup error:', _error);
     res.status(500).json({ success: false, message: 'Registration failed' });
@@ -28,10 +49,16 @@ export async function chatWithAI(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { _prompt: prompt, _context: context, _userId: userId } = req.body;
     console.log('AI chat request:', { prompt, context, userId });
-    res.status(200).json({
-      response: 'This is a sample AI response',
-      sources: ['Source 1', 'Source 2']
+    
+    // Call the API at localhost:3001
+    const response = await fetch(`${API_BASE_URL}/edubot/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, context, userId }),
     });
+    
+    const data = await response.json();
+    res.status(200).json(data);
   } catch (_error) {
     console.error('AI chat error:', _error);
     res.status(500).json({ error: 'Failed to get AI response' });

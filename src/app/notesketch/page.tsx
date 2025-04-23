@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import { FaPen, FaEraser, FaSave, FaTrash, FaHome } from 'react-icons/fa';
 
 export default function NoteSketch() {
@@ -13,8 +13,9 @@ export default function NoteSketch() {
     const [isPanning, setIsPanning] = useState(false);
     const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
     const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
-    const [homeSquare, setHomeSquare] = useState({ x: 0, y: 0, width: 0, height: 0 });
     const [scale, setScale] = useState(1);
+    const [bgColor, setBgColor] = useState('#FFFFFF');
+    const [drawingData, setDrawingData] = useState<ImageData | null>(null);
 
     useEffect(() => {
         const checkMobile = () => {
@@ -27,67 +28,70 @@ export default function NoteSketch() {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (canvas) {
-            const rect = canvas.getBoundingClientRect();
-            setHomeSquare({
-                x: 0,
-                y: 0,
-                width: rect.width,
-                height: rect.height,
-            });
-            setCanvasOffset({ x: 0, y: 0 });
-        }
-    }, []);
-
-    const resetToHomeSquare = () => {
-        setCanvasOffset({ x: 0, y: 0 });
-    };
-
-    const resizeCanvas = () => {
+    const resizeCanvas = useCallback(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        canvas.width = 10000;
-        canvas.height = 10000;
-        canvas.style.width = `${canvas.width / 2}px`;
-        canvas.style.height = `${canvas.height / 2}px`;
+        const container = canvas.parentElement;
+        if (!container) return;
 
+        const { clientWidth, clientHeight } = container;
+        canvas.style.width = `${clientWidth}px`;
+        canvas.style.height = `${clientHeight}px`;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = clientWidth * dpr;
+        canvas.height = clientHeight * dpr;
         const context = canvas.getContext('2d');
         if (context) {
-            context.scale(2, 2);
+            context.scale(dpr, dpr);
             context.lineCap = 'round';
-            context.strokeStyle = tool === 'eraser' ? '#FFFFFF' : color;
-            context.lineWidth = lineWidth;
-        }
-    };
-
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
-        const context = canvas.getContext('2d');
-        if (context) {
-            context.scale(2, 2);
-            context.lineCap = 'round';
-            context.strokeStyle = color;
+            context.strokeStyle = tool === 'eraser' ? bgColor : color;
             context.lineWidth = lineWidth;
             contextRef.current = context;
-        }
 
+            context.fillStyle = bgColor;
+            context.fillRect(0, 0, canvas.width, canvas.height);
+        }
+    }, [tool, bgColor, color, lineWidth]);
+
+    useLayoutEffect(() => {
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
         return () => window.removeEventListener('resize', resizeCanvas);
-    }, [color, lineWidth, tool]);
+    }, [resizeCanvas]);
 
     useEffect(() => {
-        if (contextRef.current) {
-            contextRef.current.strokeStyle = tool === 'eraser' ? '#FFFFFF' : color;
-            contextRef.current.lineWidth = lineWidth;
+        const canvas = canvasRef.current;
+        const context = canvas?.getContext('2d');
+        if (context && canvas) {
+            if (!drawingData) {
+                setDrawingData(context.getImageData(0, 0, canvas.width, canvas.height));
+                return;
+            }
+
+            context.fillStyle = bgColor;
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
+            context.putImageData(drawingData, 0, 0);
+
+            setDrawingData(context.getImageData(0, 0, canvas.width, canvas.height));
+
+            if (tool === 'eraser') {
+                context.strokeStyle = bgColor;
+            }
         }
-    }, [tool, color, lineWidth]);
+    }, [bgColor, drawingData, tool]);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const context = canvas.getContext('2d');
+        if (context) {
+            context.strokeStyle = tool === 'eraser' ? bgColor : color;
+            context.lineWidth = lineWidth;
+        }
+    }, [color, lineWidth, tool, bgColor]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -95,6 +99,14 @@ export default function NoteSketch() {
             canvas.style.transform = `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${scale})`;
         }
     }, [canvasOffset, scale]);
+
+    const captureDrawing = () => {
+        const canvas = canvasRef.current;
+        const context = canvas?.getContext('2d');
+        if (context && canvas) {
+            setDrawingData(context.getImageData(0, 0, canvas.width, canvas.height));
+        }
+    };
 
     const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
         const { offsetX, offsetY } = getCoordinates(e);
@@ -114,6 +126,7 @@ export default function NoteSketch() {
     const stopDrawing = () => {
         contextRef.current?.closePath();
         setIsDrawing(false);
+        captureDrawing();
     };
 
     const startPanning = (e: React.MouseEvent | React.TouchEvent) => {
@@ -162,18 +175,19 @@ export default function NoteSketch() {
     const getCoordinates = (e: React.MouseEvent | React.TouchEvent) => {
         const canvas = canvasRef.current!;
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width / 2;
-        const scaleY = canvas.height / rect.height / 2;
+
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
 
         if ('touches' in e) {
             return {
-                offsetX: (e.touches[0].clientX - rect.left) * scaleX,
-                offsetY: (e.touches[0].clientY - rect.top) * scaleY,
+                offsetX: (e.touches[0].clientX - rect.left) * scaleX / (window.devicePixelRatio || 1),
+                offsetY: (e.touches[0].clientY - rect.top) * scaleY / (window.devicePixelRatio || 1),
             };
         } else {
             return {
-                offsetX: (e.nativeEvent.clientX - rect.left) * scaleX,
-                offsetY: (e.nativeEvent.clientY - rect.top) * scaleY,
+                offsetX: (e.nativeEvent.clientX - rect.left) * scaleX / (window.devicePixelRatio || 1),
+                offsetY: (e.nativeEvent.clientY - rect.top) * scaleY / (window.devicePixelRatio || 1),
             };
         }
     };
@@ -182,7 +196,9 @@ export default function NoteSketch() {
         const canvas = canvasRef.current;
         const context = canvas?.getContext('2d');
         if (context && canvas) {
-            context.clearRect(0, 0, canvas.width / 2, canvas.height / 2);
+            context.fillStyle = bgColor;
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            setDrawingData(context.getImageData(0, 0, canvas.width, canvas.height));
         }
     };
 
@@ -205,6 +221,17 @@ export default function NoteSketch() {
             setScale(newScale);
         }
     };
+
+    const resetToHomeSquare = useCallback(() => {
+        setCanvasOffset({ x: 0, y: 0 });
+        setScale(1);
+    }, []);
+
+    useEffect(() => {
+        if (contextRef.current && canvasRef.current) {
+            captureDrawing();
+        }
+    }, []);
 
     return (
         <div className="flex flex-col h-screen bg-gray-50">
@@ -230,7 +257,7 @@ export default function NoteSketch() {
                         if (isPanning) panCanvas(e);
                         else draw(e);
                     }}
-                    onMouseUp={(e) => {
+                    onMouseUp={() => {
                         if (isPanning) stopPanning();
                         else stopDrawing();
                     }}
@@ -243,11 +270,11 @@ export default function NoteSketch() {
                         if (isPanning) panCanvas(e);
                         else draw(e);
                     }}
-                    onTouchEnd={(e) => {
+                    onTouchEnd={() => {
                         if (isPanning) stopPanning();
                         else stopDrawing();
                     }}
-                    onTouchCancel={(e) => {
+                    onTouchCancel={() => {
                         if (isPanning) stopPanning();
                         else stopDrawing();
                     }}
@@ -276,6 +303,16 @@ export default function NoteSketch() {
                                 value={color}
                                 onChange={(e) => setColor(e.target.value)}
                                 className="w-10 h-10 border border-gray-300 rounded cursor-pointer"
+                            />
+                        </div>
+                        <div className="flex items-center">
+                            <span className="text-gray-700 mr-1 hidden sm:inline">Background:</span>
+                            <input
+                                type="color"
+                                value={bgColor}
+                                onChange={(e) => setBgColor(e.target.value)}
+                                className="w-10 h-10 border border-gray-300 rounded cursor-pointer"
+                                title="Canvas background color"
                             />
                         </div>
                         <select
