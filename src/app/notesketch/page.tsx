@@ -68,13 +68,9 @@ export default function NoteSketch() {
                 setDrawingData(context.getImageData(0, 0, canvas.width, canvas.height));
                 return;
             }
-
             context.fillStyle = bgColor;
             context.fillRect(0, 0, canvas.width, canvas.height);
-
             context.putImageData(drawingData, 0, 0);
-
-            setDrawingData(context.getImageData(0, 0, canvas.width, canvas.height));
 
             if (tool === 'eraser') {
                 context.strokeStyle = bgColor;
