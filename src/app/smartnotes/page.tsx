@@ -96,11 +96,19 @@ export default function SmartNotes() {
       }
 
       const currentFileId = uploadData.fileId;
+      if (!currentFileId) {
+        throw new Error('File ID is required but was not returned by the upload response.');
+      }
       setFileId(currentFileId);
       console.log('Upload successful. File ID:', currentFileId);
 
       console.log('Requesting transcription for file ID:', currentFileId);
-      if (!fileId) return "Upload file please"
+      console.log('Transcription request payload:', {
+        fileId: currentFileId,
+        language: 'en',
+        userId: userId
+      });
+
       const transcribeResponse = await fetch('http://localhost:3001/smartnotes/transcribe', {
         method: 'POST',
         headers: {
@@ -108,9 +116,9 @@ export default function SmartNotes() {
           'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({
-          _fileId: fileId,
-          _language: 'en',
-           _userId: userId
+          fileId: currentFileId,
+          language: 'en',
+          userId: userId
         })
       });
       console.log(transcribeResponse)
@@ -121,23 +129,27 @@ export default function SmartNotes() {
 
 
       if (transcribeData.transcript) {
-        console.log('Requesting summarization...');
-        const summarizeResponse = await fetch('http://localhost:3001/smartnotes/summarize', {
+        console.log('Requesting summarization from EduBot API...');
+        const chatResponse = await fetch('http://localhost:3001/edubot/chat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${authToken}`
           },
           body: JSON.stringify({
-            _transcript: transcribeData.transcript,
-            _maxPoints: 5,
-             _userId: userId
+            prompt: `Summarize the following transcript: ${transcribeData.transcript}`,
+            context: 'Educational transcript summarization',
+            userId: userId
           })
         });
-        const summarizeData: SummarizationResponse = await summarizeResponse.json();
-         if (!summarizeResponse.ok) throw new Error((summarizeData as any).error || 'Failed to summarize transcript');
-        setSummary(summarizeData);
-        console.log('Summarization received:', summarizeData);
+        const chatData = await chatResponse.json();
+        if (!chatResponse.ok) throw new Error((chatData as any).error || 'Failed to summarize transcript');
+        setSummary({
+          summary: chatData.response,
+          keyPoints: [],
+          topics: []
+        });
+        console.log('Summarization received from EduBot API:', chatData.response);
       }
 
     } catch (error: any) {
