@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -8,6 +8,7 @@ type TranscriptionResponse = {
   transcript: string;
   confidence?: number;
   durationSeconds?: number;
+  error?: string;
 };
 
 type SummarizationResponse = {
@@ -28,7 +29,6 @@ export default function SmartNotes() {
   const [errorMessage, setErrorMessage] = useState('');
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileId, setFileId] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<string | null>(null);
   const [summary, setSummary] = useState<SummarizationResponse | null>(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -53,7 +53,6 @@ export default function SmartNotes() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setSelectedFile(event.target.files[0]);
-      setFileId(null);
       setTranscript(null);
       setSummary(null);
       setErrorMessage('');
@@ -70,14 +69,13 @@ export default function SmartNotes() {
     setErrorMessage('');
     setTranscript(null);
     setSummary(null);
-    setFileId(null);
 
     try {
       const formData = new FormData();
       formData.append('audioFile', selectedFile, selectedFile.name);
       const userId = JSON.parse(localStorage.getItem('userData') || '{}').userId || '';
       if (userId) {
-          formData.append('userId', userId);
+        formData.append('userId', userId);
       }
 
       console.log('Uploading audio file:', selectedFile.name);
@@ -90,16 +88,14 @@ export default function SmartNotes() {
       });
 
       const uploadData: UploadResponse = await uploadResponse.json();
-
       if (!uploadResponse.ok || !uploadData.success) {
-        throw new Error(uploadData.message || (uploadData as any).error || `HTTP error! status: ${uploadResponse.status}`);
+        throw new Error(uploadData.message || `HTTP error! status: ${uploadResponse.status}`);
       }
 
       const currentFileId = uploadData.fileId;
       if (!currentFileId) {
         throw new Error('File ID is required but was not returned by the upload response.');
       }
-      setFileId(currentFileId);
       console.log('Upload successful. File ID:', currentFileId);
 
       console.log('Requesting transcription for file ID:', currentFileId);
@@ -121,12 +117,13 @@ export default function SmartNotes() {
           userId: userId
         })
       });
-      console.log(transcribeResponse)
+      console.log(transcribeResponse);
       const transcribeData: TranscriptionResponse = await transcribeResponse.json();
-      if (!transcribeResponse.ok) throw new Error((transcribeData as any).error || 'Failed to transcribe audio');
+      if (!transcribeResponse.ok) {
+        throw new Error(transcribeData.error || 'Failed to transcribe audio');
+      }
       setTranscript(transcribeData.transcript);
       console.log('Transcription received:', transcribeData.transcript?.substring(0, 100) + '...');
-
 
       if (transcribeData.transcript) {
         console.log('Requesting summarization from EduBot API...');
@@ -142,8 +139,10 @@ export default function SmartNotes() {
             userId: userId
           })
         });
-        const chatData = await chatResponse.json();
-        if (!chatResponse.ok) throw new Error((chatData as any).error || 'Failed to summarize transcript');
+        const chatData: { response: string; error?: string } = await chatResponse.json();
+        if (!chatResponse.ok) {
+          throw new Error(chatData.error || 'Failed to summarize transcript');
+        }
         setSummary({
           summary: chatData.response,
           keyPoints: [],
@@ -152,21 +151,24 @@ export default function SmartNotes() {
         console.log('Summarization received from EduBot API:', chatData.response);
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage('An unknown error occurred.');
+      }
       console.error('SmartNotes processing error:', error);
-      setErrorMessage(error.message || 'An error occurred during processing.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleRecord = () => {
-      setIsRecording(!isRecording);
-      setErrorMessage('Real-time recording not implemented yet.');
-      // TODO: Implement actual recording logic using MediaRecorder API
-      // and potentially WebSockets based on API docs/backend capabilities.
+    setIsRecording(!isRecording);
+    setErrorMessage('Real-time recording not implemented yet.');
+    // TODO: Implement actual recording logic using MediaRecorder API
+    // and potentially WebSockets based on API docs/backend capabilities.
   };
-
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
@@ -174,14 +176,14 @@ export default function SmartNotes() {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
             <div className="bg-blue-600 text-white p-2 rounded-lg">
-               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
             </div>
             <span className="text-xl font-bold">StudySync</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6">
-             <Link href="/smartnotes" className="text-blue-600 font-medium">SmartNotes</Link>
-             <Link href="/edubot" className="hover:text-blue-600 transition-colors">EduBot</Link>
-             <Link href="/learnsphere" className="hover:text-blue-600 transition-colors">LearnSphere</Link>
+            <Link href="/smartnotes" className="text-blue-600 font-medium">SmartNotes</Link>
+            <Link href="/edubot" className="hover:text-blue-600 transition-colors">EduBot</Link>
+            <Link href="/learnsphere" className="hover:text-blue-600 transition-colors">LearnSphere</Link>
           </nav>
           <div className="flex items-center gap-4">
             <button onClick={() => router.push('/dashboard')} className="text-sm hover:underline">
@@ -215,19 +217,19 @@ export default function SmartNotes() {
                 onChange={handleFileChange}
                 className="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:file:bg-blue-900/30 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-900/40"
               />
-               {selectedFile && <p className="text-xs mt-1 text-gray-500 dark:text-gray-400">Selected: {selectedFile.name}</p>}
+              {selectedFile && <p className="text-xs mt-1 text-gray-500 dark:text-gray-400">Selected: {selectedFile.name}</p>}
             </div>
-             <button
-                onClick={handleUploadAndProcess}
-                disabled={!selectedFile || isLoading}
-                className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors whitespace-nowrap"
-              >
-                Upload & Process
-              </button>
+            <button
+              onClick={handleUploadAndProcess}
+              disabled={!selectedFile || isLoading}
+              className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors whitespace-nowrap"
+            >
+              Upload & Process
+            </button>
             <span className="text-gray-400 dark:text-gray-500">OR</span>
             <button
               onClick={handleRecord}
-              disabled={isLoading} 
+              disabled={isLoading}
               className={`w-full sm:w-auto px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
                 isRecording
                   ? 'bg-red-600 hover:bg-red-700 text-white'
@@ -238,52 +240,52 @@ export default function SmartNotes() {
             </button>
           </div>
 
-           {(transcript || summary) && (
-             <div className="space-y-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                {transcript && (
-                    <div>
-                        <h2 className="text-xl font-semibold mb-2">Transcript</h2>
-                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 max-h-60 overflow-y-auto text-sm">
-                            {transcript}
-                        </div>
-                    </div>
-                )}
+          {(transcript || summary) && (
+            <div className="space-y-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+              {transcript && (
+                <div>
+                  <h2 className="text-xl font-semibold mb-2">Transcript</h2>
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 max-h-60 overflow-y-auto text-sm">
+                    {transcript}
+                  </div>
+                </div>
+              )}
 
-                {summary && (
+              {summary && (
+                <div>
+                  <h2 className="text-xl font-semibold mb-2">Summary & Key Points</h2>
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 space-y-4">
                     <div>
-                        <h2 className="text-xl font-semibold mb-2">Summary & Key Points</h2>
-                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 space-y-4">
-                            <div>
-                                <h3 className="font-medium mb-1">Overall Summary:</h3>
-                                <p className="text-sm">{summary.summary}</p>
-                            </div>
-                             {summary.keyPoints && summary.keyPoints.length > 0 && (
-                                <div>
-                                    <h3 className="font-medium mb-1">Key Points:</h3>
-                                    <ul className="list-disc list-inside text-sm space-y-1">
-                                        {summary.keyPoints.map((point, index) => (
-                                            <li key={index}>{point}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                             )}
-                             {summary.topics && summary.topics.length > 0 && (
-                                <div>
-                                    <h3 className="font-medium mb-1">Detected Topics:</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {summary.topics.map((topic, index) => (
-                                            <span key={index} className="px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-xs font-medium rounded-full">
-                                                {topic}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                             )}
-                        </div>
+                      <h3 className="font-medium mb-1">Overall Summary:</h3>
+                      <p className="text-sm">{summary.summary}</p>
                     </div>
-                )}
-             </div>
-           )}
+                    {summary.keyPoints && summary.keyPoints.length > 0 && (
+                      <div>
+                        <h3 className="font-medium mb-1">Key Points:</h3>
+                        <ul className="list-disc list-inside text-sm space-y-1">
+                          {summary.keyPoints.map((point, index) => (
+                            <li key={index}>{point}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {summary.topics && summary.topics.length > 0 && (
+                      <div>
+                        <h3 className="font-medium mb-1">Detected Topics:</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {summary.topics.map((topic, index) => (
+                            <span key={index} className="px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-xs font-medium rounded-full">
+                              {topic}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
         </div>
       </main>
