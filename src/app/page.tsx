@@ -150,19 +150,13 @@ export default function Home() {
             StudySync&apos;s true power comes from how the modules share information. Your lecture notes inform your AI tutor, 
             and both feed into your personalized dashboard to show exactly where you need to focus next.
           </p>
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-            <p className="text-sm italic text-gray-600 dark:text-gray-300">
-              &quot;StudySync helped me raise my GPA from 3.2 to 3.8 in just one semester! The way everything connects makes studying so much more efficient.&quot;
-              <span className="block mt-2 font-medium">— Jane D., Computer Science Student</span>
-            </p>
-          </div>
         </div>
       </section>
 
       <section className="max-w-4xl mx-auto px-6 py-16 text-center">
         <h2 className="text-3xl font-bold mb-6">Ready to Transform Your Study Habits?</h2>
         <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-          Join thousands of students already using StudySync to achieve better grades with less stress.
+          Join us today and experience the future of studying with StudySync.
         </p>
       </section>
 
