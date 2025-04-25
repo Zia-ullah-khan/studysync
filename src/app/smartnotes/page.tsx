@@ -31,6 +31,7 @@ export default function SmartNotes() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [transcript, setTranscript] = useState<string | null>(null);
   const [summary, setSummary] = useState<SummarizationResponse | null>(null);
+  const [currentFileId, setCurrentFileId] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export default function SmartNotes() {
       setSelectedFile(event.target.files[0]);
       setTranscript(null);
       setSummary(null);
+      setCurrentFileId(null);
       setErrorMessage('');
     }
   };
@@ -69,6 +71,7 @@ export default function SmartNotes() {
     setErrorMessage('');
     setTranscript(null);
     setSummary(null);
+    setCurrentFileId(null);
 
     try {
       const formData = new FormData();
@@ -92,15 +95,16 @@ export default function SmartNotes() {
         throw new Error(uploadData.message || `HTTP error! status: ${uploadResponse.status}`);
       }
 
-      const currentFileId = uploadData.fileId;
-      if (!currentFileId) {
+      const fileId = uploadData.fileId;
+      if (!fileId) {
         throw new Error('File ID is required but was not returned by the upload response.');
       }
-      console.log('Upload successful. File ID:', currentFileId);
+      setCurrentFileId(fileId);
+      console.log('Upload successful. File ID:', fileId);
 
-      console.log('Requesting transcription for file ID:', currentFileId);
+      console.log('Requesting transcription for file ID:', fileId);
       console.log('Transcription request payload:', {
-        fileId: currentFileId,
+        fileId: fileId,
         language: 'en',
         userId: userId
       });
@@ -112,7 +116,7 @@ export default function SmartNotes() {
           'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({
-          fileId: currentFileId,
+          fileId: fileId,
           language: 'en',
           userId: userId
         })
@@ -125,32 +129,6 @@ export default function SmartNotes() {
       setTranscript(transcribeData.transcript);
       console.log('Transcription received:', transcribeData.transcript?.substring(0, 100) + '...');
 
-      if (transcribeData.transcript) {
-        console.log('Requesting summarization from EduBot API...');
-        const chatResponse = await fetch('http://localhost:3001/edubot/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-          body: JSON.stringify({
-            prompt: `Summarize the following transcript: ${transcribeData.transcript}`,
-            context: 'Educational transcript summarization',
-            userId: userId
-          })
-        });
-        const chatData: { response: string; error?: string } = await chatResponse.json();
-        if (!chatResponse.ok) {
-          throw new Error(chatData.error || 'Failed to summarize transcript');
-        }
-        setSummary({
-          summary: chatData.response,
-          keyPoints: [],
-          topics: []
-        });
-        console.log('Summarization received from EduBot API:', chatData.response);
-      }
-
     } catch (error: unknown) {
       if (error instanceof Error) {
         setErrorMessage(error.message);
@@ -160,6 +138,14 @@ export default function SmartNotes() {
       console.error('SmartNotes processing error:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSendToEduBot = () => {
+    if (currentFileId) {
+      router.push(`/edubot?fileId=${currentFileId}`);
+    } else {
+      setErrorMessage('Cannot send to EduBot: File ID is missing.');
     }
   };
 
@@ -244,7 +230,17 @@ export default function SmartNotes() {
             <div className="space-y-6 pt-6 border-t border-gray-200 dark:border-gray-700">
               {transcript && (
                 <div>
-                  <h2 className="text-xl font-semibold mb-2">Transcript</h2>
+                  <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-xl font-semibold">Transcript</h2>
+                    {currentFileId && (
+                      <button
+                        onClick={handleSendToEduBot}
+                        className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm"
+                      >
+                        Send to EduBot
+                      </button>
+                    )}
+                  </div>
                   <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 max-h-60 overflow-y-auto text-sm">
                     {transcript}
                   </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 type ChatResponse = {
   response: string;
@@ -34,13 +34,16 @@ type QuizResponse = {
 
 export default function EduBot() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'chat' | 'flashcards' | 'quiz'>('chat');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [authToken, setAuthToken] = useState<string | null>(null);
+  const [fileId, setFileId] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
+    console.log(token);
     if (token) {
       setAuthToken(token);
     } else {
@@ -54,21 +57,20 @@ export default function EduBot() {
       localStorage.removeItem('authExpiration');
       router.push('/login?redirect=edubot');
     }
-  }, [router]);
+
+    const fileIdParam = searchParams.get('fileId');
+    if (fileIdParam) {
+      setFileId(fileIdParam);
+      console.log("Received fileId:", fileIdParam);
+    }
+  }, [router, searchParams]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
       <header className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
-            <div className="bg-blue-600 text-white p-2 rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                <path d="M2 17l10 5 10-5"></path>
-                <path d="M2 12l10 5 10-5"></path>
-              </svg>
-            </div>
-            <span className="text-xl font-bold">StudySync</span>
+            <img src="/logo.jpg" alt="Logo" className="h-16 w-32" />
           </Link>
           
           <nav className="hidden md:flex items-center gap-6">
@@ -115,9 +117,9 @@ export default function EduBot() {
               </div>
             )}
             
-            {activeTab === 'chat' && <ChatWithAI authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} />}
-            {activeTab === 'flashcards' && <GenerateFlashcards authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} />}
-            {activeTab === 'quiz' && <GenerateQuiz authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} />}
+            {activeTab === 'chat' && <ChatWithAI authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} />}
+            {activeTab === 'flashcards' && <GenerateFlashcards authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} />}
+            {activeTab === 'quiz' && <GenerateQuiz authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} />}
           </div>
         </div>
       </main>
@@ -140,7 +142,7 @@ export default function EduBot() {
   );
 }
 
-function ChatWithAI({ authToken, setIsLoading, setErrorMessage }: { authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void }) {
+function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId }: { authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void, fileId: string | null }) {
   const [prompt, setPrompt] = useState('');
   const [context, setContext] = useState('');
   const [chatHistory, setChatHistory] = useState<{ question: string; answer: string; sources?: string[] }[]>([]);
@@ -151,6 +153,72 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage }: { authToken: s
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [chatHistory]);
+
+  useEffect(() => {
+    const fetchTranscription = async () => {
+      if (fileId && authToken) {
+        console.log("ChatWithAI fetching transcription for fileId:", fileId);
+        setIsLoading(true);
+        setErrorMessage('');
+        try {
+          const response = await fetch(`http://localhost:3001/smartnotes/transcriptions/${fileId}`, {
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            }
+          });
+
+          if (!response.ok) {
+            let errorText = `Failed to fetch transcription: ${response.statusText}`;
+            try {
+              const errorData = await response.text();
+              errorText += ` - Server response: ${errorData}`;
+            } catch (textError) {}
+            throw new Error(errorText);
+          }
+
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.indexOf("application/json") !== -1) {
+            try {
+              const data = await response.json();
+              if (data && data.transcription) {
+                setContext(`Context from file: ${data.transcription}`);
+                console.log("Transcription loaded into context.");
+              } else {
+                console.warn("Transcription data not found in JSON response:", data);
+                setErrorMessage('Transcription data missing in the response from the server.');
+                setContext(`Context related to file ID: ${fileId} (Transcription data missing)`);
+              }
+            } catch (jsonError) {
+              console.error('Failed to parse JSON response:', jsonError);
+              let responseText = '(Could not read text)';
+              try {
+                responseText = await response.text();
+              } catch (e) {}
+              setErrorMessage(`Failed to process transcription response. Server sent invalid JSON. Content: ${responseText.substring(0, 100)}...`);
+              setContext(`Context related to file ID: ${fileId} (Invalid data format)`);
+            }
+          } else {
+            const textData = await response.text();
+            setContext(textData);
+          }
+
+        } catch (error: any) {
+          console.error('Failed to fetch transcription:', error);
+          setErrorMessage(error.message || 'Failed to load context from the provided file. Please check the file or try again.');
+          setContext(`Context related to file ID: ${fileId} (Error loading)`);
+        } finally {
+          setIsLoading(false);
+        }
+      } else if (fileId) {
+        setContext(`Context related to file ID: ${fileId}`);
+        console.log("ChatWithAI received fileId, waiting for auth token to fetch context:", fileId);
+      } else {
+        setContext('');
+      }
+    };
+
+    fetchTranscription();
+  }, [fileId, authToken, setIsLoading, setErrorMessage]);
 
   const handleChatSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,7 +243,8 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage }: { authToken: s
         body: JSON.stringify({
           _prompt: userPrompt,
           _context: context,
-          _userId: JSON.parse(localStorage.getItem('userData') || '{}').userId || ''
+          _userId: JSON.parse(localStorage.getItem('userData') || '{}').userId || '',
+          _fileId: fileId
         })
       });
 
@@ -303,12 +372,19 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage }: { authToken: s
   );
 }
 
-function GenerateFlashcards({ authToken, setIsLoading, setErrorMessage }: { authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void }) {
+function GenerateFlashcards({ authToken, setIsLoading, setErrorMessage, fileId }: { authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void, fileId: string | null }) {
   const [topic, setTopic] = useState('');
   const [count, setCount] = useState(5);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [activeCard, setActiveCard] = useState(-1);
   const [flipped, setFlipped] = useState(false);
+
+  useEffect(() => {
+    if (fileId) {
+      setTopic(`Topic related to file ID: ${fileId}`);
+      console.log("GenerateFlashcards received fileId:", fileId);
+    }
+  }, [fileId]);
 
   const handleFlashcardGeneration = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -332,7 +408,8 @@ function GenerateFlashcards({ authToken, setIsLoading, setErrorMessage }: { auth
         body: JSON.stringify({
           _topic: topic,
           _count: count,
-          _userId: JSON.parse(localStorage.getItem('userData') || '{}').userId || ''
+          _userId: JSON.parse(localStorage.getItem('userData') || '{}').userId || '',
+          _fileId: fileId
         })
       });
 
@@ -473,13 +550,20 @@ function GenerateFlashcards({ authToken, setIsLoading, setErrorMessage }: { auth
   );
 }
 
-function GenerateQuiz({ authToken, setIsLoading, setErrorMessage }: { authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void }) {
+function GenerateQuiz({ authToken, setIsLoading, setErrorMessage, fileId }: { authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void, fileId: string | null }) {
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [questionCount, setQuestionCount] = useState(5);
   const [quiz, setQuiz] = useState<{ id: string, questions: QuizQuestion[] } | null>(null);
   const [userAnswers, setUserAnswers] = useState<number[]>([]);
   const [showResults, setShowResults] = useState(false);
+
+  useEffect(() => {
+    if (fileId) {
+      setTopic(`Topic related to file ID: ${fileId}`);
+      console.log("GenerateQuiz received fileId:", fileId);
+    }
+  }, [fileId]);
 
   const handleQuizGeneration = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -506,7 +590,8 @@ function GenerateQuiz({ authToken, setIsLoading, setErrorMessage }: { authToken:
           _topic: topic,
           _difficulty: difficulty,
           _questionCount: questionCount,
-          _userId: JSON.parse(localStorage.getItem('userData') || '{}').userId || ''
+          _userId: JSON.parse(localStorage.getItem('userData') || '{}').userId || '',
+          _fileId: fileId
         })
       });
 
@@ -671,21 +756,23 @@ function GenerateQuiz({ authToken, setIsLoading, setErrorMessage }: { authToken:
               Submit Answers
             </button>
           ) : (
-            <div className="bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-              <h3 className="font-bold text-lg">Quiz Results</h3>
-              <p className="text-xl mt-2">
-                Score: <span className="font-bold">{calculateScore()}</span> / {quiz.questions.length}
-                <span className="text-sm ml-2">({Math.round(calculateScore() / quiz.questions.length * 100)}%)</span>
+            <div className="mt-8 p-6 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
+              <h3 className="text-xl font-bold mb-4 text-green-800 dark:text-green-200">Quiz Results</h3>
+              <p className="text-lg font-medium">
+                Your Score: {calculateScore()} out of {quiz.questions.length}
+              </p>
+              <p className="mt-2 text-gray-600 dark:text-gray-400">
+                {calculateScore() === quiz.questions.length ? "Excellent work!" : "Keep practicing!"}
               </p>
               <button
                 onClick={() => {
                   setQuiz(null);
-                  setUserAnswers([]);
                   setShowResults(false);
+                  setUserAnswers([]);
                 }}
-                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
               >
-                Create New Quiz
+                Take Another Quiz
               </button>
             </div>
           )}
