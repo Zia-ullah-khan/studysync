@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import axios from 'axios';
 
 type ChatResponse = {
   response: string;
@@ -40,6 +41,8 @@ export default function EduBot() {
   const [errorMessage, setErrorMessage] = useState('');
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [fileId, setFileId] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [context, setContext] = useState(''); // <-- Add context state here
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -64,6 +67,46 @@ export default function EduBot() {
       console.log("Received fileId:", fileIdParam);
     }
   }, [router, searchParams]);
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const uploadResponse = await axios.post('http://localhost:3001/uploads/uploads', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        console.log('File uploaded successfully:', uploadResponse.data);
+        setUploadedFile(file);
+        const uploadedFileId = uploadResponse.data.fileId; // Update fileId with the generated file ID from the server
+        setFileId(uploadedFileId);
+
+        // Fetch the content of the uploaded file
+        const fileContentResponse = await axios.get(`http://localhost:3001/uploads/file?id=${uploadedFileId}`, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        if (fileContentResponse.data && fileContentResponse.data.content) {
+          setContext(`uploaded file, ${file.name}, content of uploaded file: ${fileContentResponse.data.content}`);
+          console.log('File content retrieved and set as context:', fileContentResponse.data.content);
+        } else {
+          console.warn('File content not found in response:', fileContentResponse.data);
+          setErrorMessage('Failed to retrieve file content. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error uploading or retrieving file content:', error);
+        setErrorMessage('Failed to upload or retrieve file content. Please try again.');
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
@@ -117,7 +160,7 @@ export default function EduBot() {
               </div>
             )}
             
-            {activeTab === 'chat' && <ChatWithAI authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} />}
+            {activeTab === 'chat' && <ChatWithAI authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} handleFileUpload={handleFileUpload} context={context} setContext={setContext} />} 
             {activeTab === 'flashcards' && <GenerateFlashcards authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} />}
             {activeTab === 'quiz' && <GenerateQuiz authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} />}
           </div>
@@ -142,9 +185,8 @@ export default function EduBot() {
   );
 }
 
-function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId }: { authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void, fileId: string | null }) {
+function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFileUpload, context, setContext }: { authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void, fileId: string | null, handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void, context: string, setContext: (ctx: string) => void }) {
   const [prompt, setPrompt] = useState('');
-  const [context, setContext] = useState('');
   const [chatHistory, setChatHistory] = useState<{ question: string; answer: string; sources?: string[] }[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -155,70 +197,71 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId }: { auth
   }, [chatHistory]);
 
   useEffect(() => {
+    // Only fetch transcription if fileId exists, authToken exists, and context is empty,
+    // and fileId was not set by file upload (i.e., only fetch for fileId from URL param)
+    if (!fileId || !authToken || context) return;
+    // Only fetch if fileId came from URL param, not from upload
+    // If fileId was set by upload, context will be set before fileId is set
+    // So, if context is empty and fileId exists, fetch
+    // If you want to never fetch from /smartnotes/transcriptions, just return
+    return;
+    /*
     const fetchTranscription = async () => {
-      if (fileId && authToken) {
-        console.log("ChatWithAI fetching transcription for fileId:", fileId);
-        setIsLoading(true);
-        setErrorMessage('');
-        try {
-          const response = await fetch(`http://localhost:3001/smartnotes/transcriptions/${fileId}`, {
-            headers: {
-              'Authorization': `Bearer ${authToken}`
-            }
-          });
-
-          if (!response.ok) {
-            let errorText = `Failed to fetch transcription: ${response.statusText}`;
-            try {
-              const errorData = await response.text();
-              errorText += ` - Server response: ${errorData}`;
-            } catch (textError) {}
-            throw new Error(errorText);
+      setIsLoading(true);
+      setErrorMessage('');
+      try {
+        const response = await fetch(`http://localhost:3001/smartnotes/transcriptions/${fileId}`, {
+          headers: {
+            'Authorization': `Bearer ${authToken}`
           }
+        });
 
-          const contentType = response.headers.get("content-type");
-          if (contentType && contentType.indexOf("application/json") !== -1) {
-            try {
-              const data = await response.json();
-              if (data && data.transcription) {
-                setContext(`Context from file: ${data.transcription}`);
-                console.log("Transcription loaded into context.");
-              } else {
-                console.warn("Transcription data not found in JSON response:", data);
-                setErrorMessage('Transcription data missing in the response from the server.');
-                setContext(`Context related to file ID: ${fileId} (Transcription data missing)`);
-              }
-            } catch (jsonError) {
-              console.error('Failed to parse JSON response:', jsonError);
-              let responseText = '(Could not read text)';
-              try {
-                responseText = await response.text();
-              } catch (e) {}
-              setErrorMessage(`Failed to process transcription response. Server sent invalid JSON. Content: ${responseText.substring(0, 100)}...`);
-              setContext(`Context related to file ID: ${fileId} (Invalid data format)`);
-            }
-          } else {
-            const textData = await response.text();
-            setContext(textData);
-          }
-
-        } catch (error: any) {
-          console.error('Failed to fetch transcription:', error);
-          setErrorMessage(error.message || 'Failed to load context from the provided file. Please check the file or try again.');
-          setContext(`Context related to file ID: ${fileId} (Error loading)`);
-        } finally {
-          setIsLoading(false);
+        if (!response.ok) {
+          let errorText = `Failed to fetch transcription: ${response.statusText}`;
+          try {
+            const errorData = await response.text();
+            errorText += ` - Server response: ${errorData}`;
+          } catch (textError) {}
+          throw new Error(errorText);
         }
-      } else if (fileId) {
-        setContext(`Context related to file ID: ${fileId}`);
-        console.log("ChatWithAI received fileId, waiting for auth token to fetch context:", fileId);
-      } else {
-        setContext('');
+
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          try {
+            const data = await response.json();
+            if (data && data.transcription) {
+              setContext(`Context from file: ${data.transcription}`);
+              console.log("Transcription loaded into context.");
+            } else {
+              console.warn("Transcription data not found in JSON response:", data);
+              setErrorMessage('Transcription data missing in the response from the server.');
+              setContext(`Context related to file ID: ${fileId} (Transcription data missing)`);
+            }
+          } catch (jsonError) {
+            console.error('Failed to parse JSON response:', jsonError);
+            let responseText = '(Could not read text)';
+            try {
+              responseText = await response.text();
+            } catch (e) {}
+            setErrorMessage(`Failed to process transcription response. Server sent invalid JSON. Content: ${responseText.substring(0, 100)}...`);
+            setContext(`Context related to file ID: ${fileId} (Invalid data format)`);
+          }
+        } else {
+          const textData = await response.text();
+          setContext(textData);
+        }
+
+      } catch (error: any) {
+        console.error('Failed to fetch transcription:', error);
+        setErrorMessage(error.message || 'Failed to load context from the provided file. Please check the file or try again.');
+        setContext(`Context related to file ID: ${fileId} (Error loading)`);
+      } finally {
+        setIsLoading(false);
       }
     };
-
     fetchTranscription();
-  }, [fileId, authToken, setIsLoading, setErrorMessage]);
+    */
+  }, [fileId, authToken, setIsLoading, setErrorMessage, setContext, context]);
 
   const handleChatSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -338,18 +381,17 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId }: { auth
       </div>
 
       <form onSubmit={handleChatSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="context" className="block text-sm font-medium mb-1">Context (Optional)</label>
-          <input
-            id="context"
-            type="text"
-            value={context}
-            onChange={(e) => setContext(e.target.value)}
-            placeholder="E.g., I'm a biology student studying cell structure"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
-          />
-        </div>
-        
+      <div>
+        <label htmlFor="context" className="block text-sm font-medium mb-1">Context (Optional)</label>
+        <input
+          id="context"
+          type="text"
+          value={context}
+          onChange={(e) => setContext(e.target.value)}
+          placeholder="E.g., I'm a biology student studying cell structure"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
+        />
+      </div>
         <div className="flex gap-2">
           <input
             type="text"
@@ -366,6 +408,19 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId }: { auth
           >
             Send
           </button>
+          <label
+            htmlFor="file-upload"
+            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg cursor-pointer transition-colors"
+          >
+            Upload Files
+          </label>
+          <input
+            id="file-upload"
+            type="file"
+            accept=".pdf,.doc,.docx"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
         </div>
       </form>
     </div>
