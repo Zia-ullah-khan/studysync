@@ -112,9 +112,6 @@ export default function EduBot() {
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
       <header className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.jpg" alt="Logo" className="h-16 w-32" />
-          </Link>
           
           <nav className="hidden md:flex items-center gap-6">
             <Link href="/smartnotes" className="hover:text-blue-600 transition-colors">SmartNotes</Link>
@@ -204,8 +201,9 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
     // If fileId was set by upload, context will be set before fileId is set
     // So, if context is empty and fileId exists, fetch
     // If you want to never fetch from /smartnotes/transcriptions, just return
-    return;
-    /*
+    //return;
+
+    
     const fetchTranscription = async () => {
       setIsLoading(true);
       setErrorMessage('');
@@ -260,7 +258,7 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
       }
     };
     fetchTranscription();
-    */
+    
   }, [fileId, authToken, setIsLoading, setErrorMessage, setContext, context]);
 
   const handleChatSubmit = async (e: React.FormEvent) => {
@@ -361,7 +359,7 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
                       <p>{chat.answer}</p>
                     </div>
                     
-                    {chat.sources && chat.sources.length > 0 && (
+                    {/*{chat.sources && chat.sources.length > 0 && (
                       <div className="mt-3">
                         <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Sources:</p>
                         <ul className="mt-1 text-sm text-gray-500 dark:text-gray-400 list-disc list-inside">
@@ -370,7 +368,7 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
                           ))}
                         </ul>
                       </div>
-                    )}
+                    )}*/}
                   </div>
                 </div>
               </div>
