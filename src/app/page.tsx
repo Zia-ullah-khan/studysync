@@ -23,6 +23,13 @@ export default function Home() {
         </div>
       </nav>
 
+      <div className="bg-blue-100 dark:bg-blue-900/50 py-2 px-6 text-center text-sm text-blue-800 dark:text-blue-300">
+        <span>Learn about our commitment to accessibility. </span>
+        <Link href="/free-software" className="font-medium underline hover:text-blue-600 dark:hover:text-blue-200">
+          Read Our Philosophy
+        </Link>
+      </div>
+
       <section className="max-w-6xl mx-auto px-6 pt-20 pb-16 text-center">
         <h1 className="text-5xl font-bold mb-6">Your Ultimate Study Companion</h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 mb-10 max-w-3xl mx-auto">
@@ -38,10 +45,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="features" className="max-w-6xl mx-auto px-6 py-16">
-        <h2 className="text-3xl font-bold text-center mb-12">Three Powerful Tools, One Platform</h2>
+      <section id="features" className="max-w-7xl mx-auto px-6 py-16">
+        <h2 className="text-3xl font-bold text-center mb-12">Four Powerful Tools, One Platform</h2>
         
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
             <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg inline-block mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 dark:text-blue-400">
@@ -52,7 +59,7 @@ export default function Home() {
             </div>
             <h3 className="text-xl font-bold mb-3">EduBot</h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Your AI chat companion that answers questions, creates flashcards, and quizzes you on material from your notes.
+              AI chat companion for Q&A, flashcards, and quizzes based on your notes.
             </p>
             <Link href="/edubot" className="text-blue-600 dark:text-blue-400 font-medium flex items-center gap-1 hover:underline">
               Try EduBot
@@ -75,7 +82,7 @@ export default function Home() {
             </div>
             <h3 className="text-xl font-bold mb-3">SmartNotes</h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Upload or record lectures to get instant AI-powered transcriptions, summaries, and key concepts.
+              Upload or record lectures for AI transcriptions, summaries, and key concepts.
             </p>
             <Link href="/smartnotes" className="text-green-600 dark:text-green-400 font-medium flex items-center gap-1 hover:underline">
               Try SmartNotes
@@ -96,10 +103,29 @@ export default function Home() {
             </div>
             <h3 className="text-xl font-bold mb-3">LearnSphere</h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Visualize your learning journey with a personalized dashboard showing strengths, weaknesses, and topic mastery.
+              Personalized dashboard visualizing strengths, weaknesses, and topic mastery.
             </p>
             <Link href="/learnsphere" className="text-purple-600 dark:text-purple-400 font-medium flex items-center gap-1 hover:underline">
               Try LearnSphere
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5">
+                <path d="M5 12h14"></path>
+                <path d="m12 5 7 7-7 7"></path>
+              </svg>
+            </Link>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+            <div className="bg-yellow-100 dark:bg-yellow-900/30 p-3 rounded-lg inline-block mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-600 dark:text-yellow-400">
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                <path d="m15 5 4 4"/>
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold mb-3">NoteSketch</h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Digital canvas for handwritten notes, diagrams, and equations, integrated with your studies.
+            </p>
+            <Link href="/notesketch" className="text-yellow-600 dark:text-yellow-400 font-medium flex items-center gap-1 hover:underline">
+              Try NoteSketch
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5">
                 <path d="M5 12h14"></path>
                 <path d="m12 5 7 7-7 7"></path>
@@ -173,10 +199,10 @@ export default function Home() {
               </div>
               <span className="text-xl font-bold">StudySync</span>
             </div>
-            <div className="flex gap-8">
-              <a href="#" className="hover:text-blue-600 transition-colors">About</a>
-              <a href="#" className="hover:text-blue-600 transition-colors">Support</a>
-              <a href="#" className="hover:text-blue-600 transition-colors">Privacy</a>
+            <div className="flex flex-wrap justify-center gap-6 md:gap-8 mt-4 md:mt-0">
+              <Link href="/free-software" className="hover:text-blue-600 transition-colors text-sm">Our Philosophy</Link>
+              <Link href="/tos" className="hover:text-blue-600 transition-colors text-sm">Terms of Service</Link>
+              <Link href="/privacy" className="hover:text-blue-600 transition-colors text-sm">Privacy Policy</Link>
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800 text-center text-gray-500 dark:text-gray-400">

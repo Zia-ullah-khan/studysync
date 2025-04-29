@@ -129,147 +129,152 @@ function LoginContent() {
       </header>
 
       <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 w-full max-w-md">
-          <div className="flex mb-8">
-            <button 
-              className={`flex-1 py-3 font-medium text-center border-b-2 ${isLogin ? 'border-blue-600 text-blue-600' : 'border-gray-200 dark:border-gray-700 text-gray-500'}`}
-              onClick={() => setIsLogin(true)}
-            >
-              Log In
-            </button>
-            <button 
-              className={`flex-1 py-3 font-medium text-center border-b-2 ${!isLogin ? 'border-blue-600 text-blue-600' : 'border-gray-200 dark:border-gray-700 text-gray-500'}`}
-              onClick={() => setIsLogin(false)}
-            >
-              Sign Up
-            </button>
+        <div className="w-full max-w-md">
+          <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-md text-sm dark:bg-yellow-900/30 dark:border-yellow-700/50 dark:text-yellow-300">
+            Note: Some requests might take a bit longer. Our servers sometimes take a short nap to save energy (and costs!). Thanks for your patience!
           </div>
-          <h1 className="text-2xl font-bold mb-6">
-            {isLogin ? 'Welcome back' : 'Create your account'}
-          </h1>
-          
-          {errorMessage && (
-            <div className="mb-4 text-red-500 text-sm">
-              {errorMessage}
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
+            <div className="flex mb-8">
+              <button 
+                className={`flex-1 py-3 font-medium text-center border-b-2 ${isLogin ? 'border-blue-600 text-blue-600' : 'border-gray-200 dark:border-gray-700 text-gray-500'}`}
+                onClick={() => setIsLogin(true)}
+              >
+                Log In
+              </button>
+              <button 
+                className={`flex-1 py-3 font-medium text-center border-b-2 ${!isLogin ? 'border-blue-600 text-blue-600' : 'border-gray-200 dark:border-gray-700 text-gray-500'}`}
+                onClick={() => setIsLogin(false)}
+              >
+                Sign Up
+              </button>
             </div>
-          )}
+            <h1 className="text-2xl font-bold mb-6">
+              {isLogin ? 'Welcome back' : 'Create your account'}
+            </h1>
+            
+            {errorMessage && (
+              <div className="mb-4 text-red-500 text-sm">
+                {errorMessage}
+              </div>
+            )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
-                required
-              />
-            </div>
-            {!isLogin && (
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium mb-1">Name</label>
+                <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
                 <input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
                   required
                 />
               </div>
-            )}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
-                required
-              />
-            </div>
-
-            {!isLogin && (
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">Confirm Password</label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
-                  required
-                />
-              </div>
-            )}
-
-            <div className="flex items-center justify-between">
-              {isLogin && (
-                <div className="flex items-center">
+              {!isLogin && (
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium mb-1">Name</label>
                   <input
-                    id="remember-me"
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={() => setRememberMe(!rememberMe)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
+                    required
                   />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                    Remember me
-                  </label>
                 </div>
               )}
-              <div className="text-sm">
-                <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
-                  Forgot password?
-                </a>
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
+                  required
+                />
               </div>
-            </div>
 
-            {!isLogin && (
-              <div className="mt-6 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                <p className="mb-2">
-                  At StudySync, your privacy and trust are our top priorities.
-                  We protect your personal data following GDPR and CCPA standards, and we never sell your information.
-                </p>
-                <p>
-                  By using StudySync, you agree to our Terms of Service, which emphasize academic integrity, responsible AI use, and user control over their data.
-                  For full details, please review our complete <Link href="/privacy" className="text-blue-600 dark:text-blue-400 underline">Privacy Policy</Link> and <Link href="/tos" className="text-blue-600 dark:text-blue-400 underline">Terms of Service</Link>.
-                </p>
-                <div className="flex items-center mt-4">
+              {!isLogin && (
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">Confirm Password</label>
                   <input
-                    id="agree-terms"
-                    type="checkbox"
-                    checked={agreedToTerms}
-                    onChange={() => setAgreedToTerms(!agreedToTerms)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
+                    required
                   />
-                  <label htmlFor="agree-terms" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                    I have read and agree to the Terms of Service and Privacy Policy.
-                  </label>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between">
+                {isLogin && (
+                  <div className="flex items-center">
+                    <input
+                      id="remember-me"
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={() => setRememberMe(!rememberMe)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                      Remember me
+                    </label>
+                  </div>
+                )}
+                <div className="text-sm">
+                  <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                    Forgot password?
+                  </a>
                 </div>
               </div>
-            )}
 
-            <button
-              type="submit"
-              className={`w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium ${(!isLogin && !agreedToTerms) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={isLoading || (!isLogin && !agreedToTerms)} // <-- Disable if not agreed
-            >
-              {isLoading ? 'Processing...' : isLogin ? 'Log In' : 'Sign Up'}
-            </button>
-          </form>
-          
-          <p className="mt-6 text-center text-sm text-gray-500">
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button
-              onClick={() => setIsLogin(!isLogin)} 
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
-              {isLogin ? 'Sign up' : 'Log in'}
-            </button>
-          </p>
+              {!isLogin && (
+                <div className="mt-6 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <p className="mb-2">
+                    At StudySync, your privacy and trust are our top priorities.
+                    We protect your personal data following GDPR and CCPA standards, and we never sell your information.
+                  </p>
+                  <p>
+                    By using StudySync, you agree to our Terms of Service, which emphasize academic integrity, responsible AI use, and user control over their data.
+                    For full details, please review our complete <Link href="/privacy" className="text-blue-600 dark:text-blue-400 underline">Privacy Policy</Link> and <Link href="/tos" className="text-blue-600 dark:text-blue-400 underline">Terms of Service</Link>.
+                  </p>
+                  <div className="flex items-center mt-4">
+                    <input
+                      id="agree-terms"
+                      type="checkbox"
+                      checked={agreedToTerms}
+                      onChange={() => setAgreedToTerms(!agreedToTerms)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="agree-terms" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                      I have read and agree to the Terms of Service and Privacy Policy.
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className={`w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium ${(!isLogin && !agreedToTerms) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={isLoading || (!isLogin && !agreedToTerms)} // <-- Disable if not agreed
+              >
+                {isLoading ? 'Processing...' : isLogin ? 'Log In' : 'Sign Up'}
+              </button>
+            </form>
+            
+            <p className="mt-6 text-center text-sm text-gray-500">
+              {isLogin ? "Don't have an account? " : "Already have an account? "}
+              <button
+                onClick={() => setIsLogin(!isLogin)} 
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
+                {isLogin ? 'Sign up' : 'Log in'}
+              </button>
+            </p>
+          </div>
         </div>
       </main>
 
