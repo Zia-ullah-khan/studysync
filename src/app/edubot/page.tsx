@@ -77,7 +77,7 @@ function EduBotContent() {
       formData.append('file', file);
 
       try {
-        const uploadResponse = await axios.post('http://localhost:3001/uploads/uploads', formData, {
+        const uploadResponse = await axios.post('https://studysyncapi.onrender.com/uploads/uploads', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${authToken}`,
@@ -88,7 +88,7 @@ function EduBotContent() {
         const uploadedFileId = uploadResponse.data.fileId;
         setFileId(uploadedFileId);
 
-        const fileContentResponse = await axios.get(`http://localhost:3001/uploads/file?id=${uploadedFileId}`, {
+        const fileContentResponse = await axios.get(`https://studysyncapi.onrender.com/uploads/file?id=${uploadedFileId}`, {
           headers: {
             Authorization: `Bearer ${authToken}`,
           },
@@ -231,7 +231,7 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
     setErrorMessage('');
 
     try {
-      const response = await fetch('http://localhost:3001/edubot/chat', {
+      const response = await fetch('https://studysyncapi.onrender.com/edubot/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -419,7 +419,7 @@ function GenerateFlashcards({ authToken, setIsLoading, setErrorMessage, fileId }
     setFlashcards([]);
 
     try {
-      const response = await fetch('http://localhost:3001/edubot/flashcards', {
+      const response = await fetch('https://studysyncapi.onrender.com/edubot/flashcards', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -604,7 +604,7 @@ function GenerateQuiz({ authToken, setIsLoading, setErrorMessage, fileId }: { au
     setShowResults(false);
 
     try {
-      const response = await fetch('http://localhost:3001/edubot/quiz', {
+      const response = await fetch('https://studysyncapi.onrender.com/edubot/quiz', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
 // API base URL
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = 'https://studysyncapi.onrender.com';
 
 // Auth related endpoints
 export async function login(req: NextApiRequest, res: NextApiResponse) {

@@ -82,7 +82,7 @@ export default function SmartNotes() {
       }
 
       console.log('Uploading audio file:', selectedFile.name);
-      const uploadResponse = await fetch('http://localhost:3001/smartnotes/audio', {
+      const uploadResponse = await fetch('https://studysyncapi.onrender.com/smartnotes/audio', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -109,7 +109,7 @@ export default function SmartNotes() {
         userId: userId
       });
 
-      const transcribeResponse = await fetch('http://localhost:3001/smartnotes/transcribe', {
+      const transcribeResponse = await fetch('https://studysyncapi.onrender.com/smartnotes/transcribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
