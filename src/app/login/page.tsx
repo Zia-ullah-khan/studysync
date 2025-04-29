@@ -19,6 +19,7 @@ function LoginContent() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false); // <-- Add state for checkbox
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -70,6 +71,11 @@ function LoginContent() {
           setErrorMessage(data.message || 'Login failed');
         }
       } else {
+        if (!agreedToTerms) {
+          setErrorMessage('You must agree to the Terms of Service and Privacy Policy to sign up.');
+          setIsLoading(false);
+          return;
+        }
         if (password !== confirmPassword) {
           setErrorMessage('Passwords do not match');
           setIsLoading(false);
@@ -220,11 +226,36 @@ function LoginContent() {
                 </a>
               </div>
             </div>
-            
+
+            {!isLogin && (
+              <div className="mt-6 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                <p className="mb-2">
+                  At StudySync, your privacy and trust are our top priorities.
+                  We protect your personal data following GDPR and CCPA standards, and we never sell your information.
+                </p>
+                <p>
+                  By using StudySync, you agree to our Terms of Service, which emphasize academic integrity, responsible AI use, and user control over their data.
+                  For full details, please review our complete <Link href="/privacy" className="text-blue-600 dark:text-blue-400 underline">Privacy Policy</Link> and <Link href="/tos" className="text-blue-600 dark:text-blue-400 underline">Terms of Service</Link>.
+                </p>
+                <div className="flex items-center mt-4">
+                  <input
+                    id="agree-terms"
+                    type="checkbox"
+                    checked={agreedToTerms}
+                    onChange={() => setAgreedToTerms(!agreedToTerms)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="agree-terms" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                    I have read and agree to the Terms of Service and Privacy Policy.
+                  </label>
+                </div>
+              </div>
+            )}
+
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-              disabled={isLoading}
+              className={`w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium ${(!isLogin && !agreedToTerms) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={isLoading || (!isLogin && !agreedToTerms)} // <-- Disable if not agreed
             >
               {isLoading ? 'Processing...' : isLogin ? 'Log In' : 'Sign Up'}
             </button>

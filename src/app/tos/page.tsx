@@ -37,7 +37,7 @@ export default function TermsOfService() {
         </p>
         <h2 className="text-xl font-semibold mt-6 mb-2">5A. Protection from Unlawful or Unfair Termination</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
-          StudySync is committed to fair and lawful treatment of all users. Accounts will not be suspended or terminated without valid reason and due process. Users will be notified of the reason for any suspension or termination and will have the opportunity to appeal or address the issue, except in cases of severe or repeated violations or where required by law. We do not terminate or suspend accounts for arbitrary, discriminatory, or retaliatory reasons.
+          StudySync is committed to fair and lawful treatment of all users. Accounts will not be suspended or terminated without valid reason and due process. Users will be notified of the reason for any suspension or termination and will have a reasonable time frame (e.g., 14 days) to appeal or address the issue, except in cases of severe or repeated violations or where required by law. We do not terminate or suspend accounts for arbitrary, discriminatory, or retaliatory reasons.
         </p>
         <h2 className="text-xl font-semibold mt-6 mb-2">6. Disclaimer</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
@@ -61,7 +61,7 @@ export default function TermsOfService() {
         </p>
         <h2 className="text-xl font-semibold mt-6 mb-2">11. User Responsibility for AI Actions</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
-          Any actions, outputs, or recommendations provided by StudySync&apos;s AI are always the responsibility of the user supervising the AI. Users must review and use AI-generated content appropriately and in accordance with their own judgment and institutional policies. You are required to review all AI-generated content before submitting or using it in any formal academic context, and to understand the limitations of AI, especially in legal, medical, or other professional areas. StudySync is not liable for any consequences resulting from the use or misuse of AI-generated content.
+          Any actions, outputs, or recommendations provided by StudySync&apos;s AI are always the responsibility of the user supervising the AI. <strong>Users must review and use AI-generated content appropriately</strong> and in accordance with their own judgment and institutional policies. You are required to review all AI-generated content before submitting or using it in any formal academic context, and to understand the limitations of AI, especially in legal, medical, or other professional areas. StudySync is not liable for any consequences resulting from the use or misuse of AI-generated content.
         </p>
         <h2 className="text-xl font-semibold mt-6 mb-2">12. Copyright and AI-Generated Content</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">

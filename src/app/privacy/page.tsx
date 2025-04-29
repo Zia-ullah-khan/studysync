@@ -25,7 +25,7 @@ export default function PrivacyPolicy() {
         </ul>
         <h2 className="text-xl font-semibold mt-6 mb-2">Data Retention</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
-          We retain your personal data for as long as necessary to fulfill the purposes outlined in this Privacy Policy, unless a longer retention period is required or permitted by law. Data is deleted upon user request or account deletion.
+          We retain your personal data for as long as your account is active or as needed to provide you services. Data is deleted upon user request or account deletion. We may also delete data associated with accounts that have been inactive for more than 12 months, after providing notice to the user. We retain data as necessary to comply with our legal obligations, resolve disputes, and enforce our agreements, unless a longer retention period is required or permitted by law.
         </p>
         <h2 className="text-xl font-semibold mt-6 mb-2">Data Sharing & International Transfers</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
