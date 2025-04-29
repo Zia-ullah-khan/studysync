@@ -2,17 +2,14 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export default function LearnSphere() {
   const router = useRouter();
-  const [authToken, setAuthToken] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
-    if (token) {
-      setAuthToken(token);
-    } else {
+    if (!token) {
       router.push('/login?redirect=learnsphere');
     }
     const expiration = localStorage.getItem('authExpiration');

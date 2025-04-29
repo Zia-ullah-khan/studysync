@@ -3,11 +3,24 @@
 import { useEffect, useState } from "react";
 import { saveAs } from "file-saver";
 
+interface UserFile {
+  _id?: string;
+  [key: string]: unknown;
+}
+interface UserTranscription {
+  _id?: string;
+  [key: string]: unknown;
+}
+interface UserData {
+  files?: UserFile[];
+  transcriptions?: UserTranscription[];
+  [key: string]: unknown;
+}
+
 export default function UserDataPage() {
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [showFiles, setShowFiles] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [expandedFiles, setExpandedFiles] = useState<number[]>([]);
   const [expandedTrans, setExpandedTrans] = useState<number[]>([]);
@@ -57,8 +70,9 @@ export default function UserDataPage() {
       }
       alert("All your data and your account have been deleted. You will be logged out.");
       window.location.href = "/login";
-    } catch (err: any) {
-      alert(err.message || "Failed to delete data");
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to delete data";
+      alert(errorMsg);
     } finally {
       setDeleting(false);
     }
@@ -85,8 +99,11 @@ export default function UserDataPage() {
         if (!res.ok) throw new Error("Failed to fetch user data");
         return res.json();
       })
-      .then((data) => setUserData(data))
-      .catch((err) => setError(err.message))
+      .then((data: UserData) => setUserData(data))
+      .catch((err: unknown) => {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        setError(errorMsg);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -96,7 +113,6 @@ export default function UserDataPage() {
         <h1 className="text-2xl font-bold mb-6 text-center">Your Stored Data</h1>
         {loading && <p>Loading...</p>}
         {error && <div className="text-red-600 mb-4">{error}</div>}
-        {/* Download and Delete buttons */}
         <div className="flex gap-4 mb-6">
           <button
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
@@ -115,12 +131,11 @@ export default function UserDataPage() {
             {deleting ? 'Deleting...' : 'Delete All Data'}
           </button>
         </div>
-        {/* Files in key-value format with expand button */}
         {userData && userData.files && Array.isArray(userData.files) && userData.files.length > 0 && (
           <div className="mb-6">
             <div className="font-semibold mb-2">Files:</div>
             <div className="space-y-3">
-              {userData.files.map((file: any, idx: number) => (
+              {userData.files.map((file, idx) => (
                 <div key={file._id || idx} className="border rounded p-3 bg-gray-50 dark:bg-gray-700">
                   {Object.entries(file).filter(([k]) => k !== 'path').map(([k, v]) => (
                     <div key={k} className="flex flex-row gap-2">
@@ -143,12 +158,11 @@ export default function UserDataPage() {
             </div>
           </div>
         )}
-        {/* Transcriptions in key-value format with expand button */}
         {userData && userData.transcriptions && Array.isArray(userData.transcriptions) && userData.transcriptions.length > 0 && (
           <div className="mb-6">
             <div className="font-semibold mb-2">Transcriptions:</div>
             <div className="space-y-3">
-              {userData.transcriptions.map((t: any, idx: number) => (
+              {userData.transcriptions.map((t, idx) => (
                 <div key={t._id || idx} className="border rounded p-3 bg-gray-50 dark:bg-gray-700">
                   {Object.entries(t).filter(([k]) => k !== 'transcript').map(([k, v]) => (
                     <div key={k} className="flex flex-row gap-2">
@@ -171,7 +185,6 @@ export default function UserDataPage() {
             </div>
           </div>
         )}
-        {/* Show other user data except files and transcriptions */}
         {userData && typeof userData === 'object' && !Array.isArray(userData) ? (
           <div className="space-y-2">
             {Object.entries(userData).filter(([key]) => key !== 'files' && key !== 'transcriptions').map(([key, value]) => (

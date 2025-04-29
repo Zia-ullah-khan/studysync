@@ -1,6 +1,5 @@
-'use client';
-
-import { useState, useEffect, useRef } from 'react';
+"use client";
+import React, { Suspense, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
@@ -33,7 +32,7 @@ type QuizResponse = {
   };
 };
 
-export default function EduBot() {
+function EduBotContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'chat' | 'flashcards' | 'quiz'>('chat');
@@ -41,8 +40,7 @@ export default function EduBot() {
   const [errorMessage, setErrorMessage] = useState('');
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [fileId, setFileId] = useState<string | null>(null);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [context, setContext] = useState(''); // <-- Add context state here
+  const [context, setContext] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -83,7 +81,6 @@ export default function EduBot() {
         });
 
         console.log('File uploaded successfully:', uploadResponse.data);
-        setUploadedFile(file);
         const uploadedFileId = uploadResponse.data.fileId;
         setFileId(uploadedFileId);
 
@@ -100,13 +97,14 @@ export default function EduBot() {
           console.warn('File content not found in response:', fileContentResponse.data);
           setErrorMessage('Failed to retrieve file content. Please try again.');
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error uploading or retrieving file content:', error);
 
-        const errorDetails = error.response?.data?.message || error.message || 'Unknown error occurred';
-        const errorCode = error.response?.status ? ` (Error Code: ${error.response.status})` : '';
-
-        setErrorMessage(`Failed to upload or retrieve file content. ${errorDetails}${errorCode}. Please try again.`);
+        if (error instanceof Error) {
+          setErrorMessage(`Failed to upload or retrieve file content. ${error.message}. Please try again.`);
+        } else {
+          setErrorMessage(`Failed to upload or retrieve file content. Unknown error occurred. Please try again.`);
+        }
       }
     }
   };
@@ -185,6 +183,14 @@ export default function EduBot() {
   );
 }
 
+export default function EduBot() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EduBotContent />
+    </Suspense>
+  );
+}
+
 function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFileUpload, context, setContext }: { authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void, fileId: string | null, handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void, context: string, setContext: (ctx: string) => void }) {
   const [prompt, setPrompt] = useState('');
   const [chatHistory, setChatHistory] = useState<{ question: string; answer: string; sources?: string[] }[]>([]);
@@ -222,7 +228,7 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
           try {
             const errorData = await response.text();
             errorText += ` - Server response: ${errorData}`;
-          } catch (textError) {}
+          } catch { }
           throw new Error(errorText);
         }
 
@@ -243,7 +249,7 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
             let responseText = '(Could not read text)';
             try {
               responseText = await response.text();
-            } catch (e) {}
+            } catch { }
             setErrorMessage(`Failed to process transcription response. Server sent invalid JSON. Content: ${responseText.substring(0, 100)}...`);
             setContext(`Context related to file ID: ${fileId} (Invalid data format)`);
           }
@@ -252,9 +258,13 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
           setContext(textData);
         }
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to fetch transcription:', error);
-        setErrorMessage(error.message || 'Failed to load context from the provided file. Please check the file or try again.');
+        if (error instanceof Error) {
+          setErrorMessage(error.message || 'Failed to load context from the provided file. Please check the file or try again.');
+        } else {
+          setErrorMessage('Failed to load context from the provided file. Unknown error occurred. Please check the file or try again.');
+        }
         setContext(`Context related to file ID: ${fileId} (Error loading)`);
       } finally {
         setIsLoading(false);
@@ -303,9 +313,13 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
       } else {
         throw new Error(data.response || 'Failed to get response');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Chat error:', error);
-      setErrorMessage('Failed to communicate with AI. Please try again.');
+      if (error instanceof Error) {
+        setErrorMessage(error.message || 'Failed to communicate with AI. Please try again.');
+      } else {
+        setErrorMessage('Failed to communicate with AI. Unknown error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -333,7 +347,7 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
           </div>
         ) : (
           <div className="space-y-6">
-            {chatHistory.map((chat, index) => (
+            {chatHistory.map((chat: { question: string; answer: string; sources?: string[] }, index: number) => (
               <div key={index} className="space-y-4">
                 <div className="flex items-start gap-3">
                   <div className="bg-blue-100 dark:bg-blue-900 rounded-full p-2 text-blue-600 dark:text-blue-400">
@@ -482,7 +496,11 @@ function GenerateFlashcards({ authToken, setIsLoading, setErrorMessage, fileId }
       }
     } catch (error) {
       console.error('Flashcard generation error:', error);
-      setErrorMessage('Failed to generate flashcards. Please try again.');
+      if (error instanceof Error) {
+        setErrorMessage(error.message || 'Failed to generate flashcards. Please try again.');
+      } else {
+        setErrorMessage('Failed to generate flashcards. Unknown error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -632,7 +650,7 @@ function GenerateQuiz({ authToken, setIsLoading, setErrorMessage, fileId }: { au
     setIsLoading(true);
     setErrorMessage('');
     setQuiz(null);
-    setUserAnswers([]);
+    setUserAnswers([]); 
     setShowResults(false);
 
     try {
@@ -661,7 +679,11 @@ function GenerateQuiz({ authToken, setIsLoading, setErrorMessage, fileId }: { au
       }
     } catch (error) {
       console.error('Quiz generation error:', error);
-      setErrorMessage('Failed to generate quiz. Please try again.');
+      if (error instanceof Error) {
+        setErrorMessage(error.message || 'Failed to generate quiz. Please try again.');
+      } else {
+        setErrorMessage('Failed to generate quiz. Unknown error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -756,13 +778,13 @@ function GenerateQuiz({ authToken, setIsLoading, setErrorMessage, fileId }: { au
           </div>
           
           <div className="space-y-8">
-            {quiz.questions.map((question, qIndex) => (
+            {quiz.questions.map((question: QuizQuestion, qIndex: number) => (
               <div key={question.id} className="space-y-4">
                 <h4 className="font-medium">
                   {qIndex + 1}. {question.text}
                 </h4>
                 <div className="space-y-2">
-                  {question.options.map((option, oIndex) => (
+                  {question.options.map((option: string, oIndex: number) => (
                     <div 
                       key={oIndex}
                       onClick={() => handleAnswerSelection(qIndex, oIndex)}
