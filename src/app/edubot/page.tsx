@@ -84,10 +84,9 @@ export default function EduBot() {
 
         console.log('File uploaded successfully:', uploadResponse.data);
         setUploadedFile(file);
-        const uploadedFileId = uploadResponse.data.fileId; // Update fileId with the generated file ID from the server
+        const uploadedFileId = uploadResponse.data.fileId;
         setFileId(uploadedFileId);
 
-        // Fetch the content of the uploaded file
         const fileContentResponse = await axios.get(`http://localhost:3001/uploads/file?id=${uploadedFileId}`, {
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -101,9 +100,13 @@ export default function EduBot() {
           console.warn('File content not found in response:', fileContentResponse.data);
           setErrorMessage('Failed to retrieve file content. Please try again.');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error uploading or retrieving file content:', error);
-        setErrorMessage('Failed to upload or retrieve file content. Please try again.');
+
+        const errorDetails = error.response?.data?.message || error.message || 'Unknown error occurred';
+        const errorCode = error.response?.status ? ` (Error Code: ${error.response.status})` : '';
+
+        setErrorMessage(`Failed to upload or retrieve file content. ${errorDetails}${errorCode}. Please try again.`);
       }
     }
   };

@@ -15,6 +15,7 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -74,13 +75,12 @@ function LoginContent() {
           setIsLoading(false);
           return;
         }
-        
         const response = await fetch('http://localhost:3001/auth/signup', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ _email: email, _password: password }),
+          body: JSON.stringify({ email, password, name }),
         });
         
         const data = await response.json();
@@ -160,7 +160,19 @@ function LoginContent() {
                 required
               />
             </div>
-            
+            {!isLogin && (
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium mb-1">Name</label>
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
+                  required
+                />
+              </div>
+            )}
             <div>
               <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
               <input
