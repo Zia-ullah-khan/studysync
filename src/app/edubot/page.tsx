@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense, useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react'; // Import Suspense
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
@@ -7,6 +7,8 @@ import axios from 'axios';
 type ChatResponse = {
   response: string;
   sources: string[];
+  memorySaved?: boolean;
+  savedMemory?: Record<string, unknown> | null;
 };
 
 type Flashcard = {
@@ -41,7 +43,9 @@ function EduBotContent() {
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [fileId, setFileId] = useState<string | null>(null);
   const [context, setContext] = useState('');
-
+  const [memorySaved, setMemorySaved] = useState<boolean>(false);
+  const [savedMemory, setSavedMemory] = useState<Record<string, unknown> | null>(null);
+  console.log(memorySaved, savedMemory)
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     console.log(token);
@@ -116,7 +120,9 @@ function EduBotContent() {
           
           <nav className="hidden md:flex items-center gap-6">
             <Link href="/smartnotes" className="hover:text-blue-600 transition-colors">SmartNotes</Link>
-            <Link href="/edubot" className="text-blue-600 font-medium">EduBot</Link>
+            <span className="relative flex items-center">
+              <Link href="/edubot" className="text-blue-600 font-medium">EduBot</Link>
+            </span>
             <Link href="/learnsphere" className="hover:text-blue-600 transition-colors">LearnSphere</Link>
           </nav>
           
@@ -158,7 +164,7 @@ function EduBotContent() {
               </div>
             )}
             
-            {activeTab === 'chat' && <ChatWithAI authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} handleFileUpload={handleFileUpload} context={context} setContext={setContext} />} 
+            {activeTab === 'chat' && <ChatWithAI authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} handleFileUpload={handleFileUpload} context={context} setContext={setContext} setMemorySaved={setMemorySaved} setSavedMemory={setSavedMemory} />} 
             {activeTab === 'flashcards' && <GenerateFlashcards authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} />}
             {activeTab === 'quiz' && <GenerateQuiz authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} />}
           </div>
@@ -174,8 +180,11 @@ function EduBotContent() {
       {isLoading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg flex flex-col items-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mb-4"></div>
-            <p>Processing your request...</p>
+            <svg className="animate-spin h-8 w-8 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            </svg>
+            <span className="text-gray-700 dark:text-gray-200">Loading...</span>
           </div>
         </div>
       )}
@@ -183,17 +192,19 @@ function EduBotContent() {
   );
 }
 
-export default function EduBot() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <EduBotContent />
-    </Suspense>
-  );
-}
-
-function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFileUpload, context, setContext }: { authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void, fileId: string | null, handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void, context: string, setContext: (ctx: string) => void }) {
+function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFileUpload, context, setContext, setMemorySaved, setSavedMemory }: {
+  authToken: string | null,
+  setIsLoading: (loading: boolean) => void,
+  setErrorMessage: (error: string) => void,
+  fileId: string | null,
+  handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void,
+  context: string,
+  setContext: (ctx: string) => void,
+  setMemorySaved: (saved: boolean) => void,
+  setSavedMemory: (memory: Record<string, unknown> | null) => void
+}) {
   const [prompt, setPrompt] = useState('');
-  const [chatHistory, setChatHistory] = useState<{ question: string; answer: string; sources?: string[] }[]>([]);
+  const [chatHistory, setChatHistory] = useState<{ question: string; answer: string; sources?: string[]; memorySaved?: boolean; savedMemory?: Record<string, unknown> | null }[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -203,75 +214,7 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
   }, [chatHistory]);
 
   useEffect(() => {
-    // Only fetch transcription if fileId exists, authToken exists, and context is empty,
-    // and fileId was not set by file upload (i.e., only fetch for fileId from URL param)
     if (!fileId || !authToken || context) return;
-    // Only fetch if fileId came from URL param, not from upload
-    // If fileId was set by upload, context will be set before fileId is set
-    // So, if context is empty and fileId exists, fetch
-    // If you want to never fetch from /smartnotes/transcriptions, just return
-    //return;
-
-    
-    const fetchTranscription = async () => {
-      setIsLoading(true);
-      setErrorMessage('');
-      try {
-        const response = await fetch(`http://localhost:3001/smartnotes/transcriptions/${fileId}`, {
-          headers: {
-            'Authorization': `Bearer ${authToken}`
-          }
-        });
-
-        if (!response.ok) {
-          let errorText = `Failed to fetch transcription: ${response.statusText}`;
-          try {
-            const errorData = await response.text();
-            errorText += ` - Server response: ${errorData}`;
-          } catch { }
-          throw new Error(errorText);
-        }
-
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-          try {
-            const data = await response.json();
-            if (data && data.transcription) {
-              setContext(`Context from file: ${data.transcription}`);
-              console.log("Transcription loaded into context.");
-            } else {
-              console.warn("Transcription data not found in JSON response:", data);
-              setErrorMessage('Transcription data missing in the response from the server.');
-              setContext(`Context related to file ID: ${fileId} (Transcription data missing)`);
-            }
-          } catch (jsonError) {
-            console.error('Failed to parse JSON response:', jsonError);
-            let responseText = '(Could not read text)';
-            try {
-              responseText = await response.text();
-            } catch { }
-            setErrorMessage(`Failed to process transcription response. Server sent invalid JSON. Content: ${responseText.substring(0, 100)}...`);
-            setContext(`Context related to file ID: ${fileId} (Invalid data format)`);
-          }
-        } else {
-          const textData = await response.text();
-          setContext(textData);
-        }
-
-      } catch (error: unknown) {
-        console.error('Failed to fetch transcription:', error);
-        if (error instanceof Error) {
-          setErrorMessage(error.message || 'Failed to load context from the provided file. Please check the file or try again.');
-        } else {
-          setErrorMessage('Failed to load context from the provided file. Unknown error occurred. Please check the file or try again.');
-        }
-        setContext(`Context related to file ID: ${fileId} (Error loading)`);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchTranscription();
-    
   }, [fileId, authToken, setIsLoading, setErrorMessage, setContext, context]);
 
   const handleChatSubmit = async (e: React.FormEvent) => {
@@ -308,8 +251,17 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
         setChatHistory(prev => [...prev, {
           question: userPrompt,
           answer: data.response,
-          sources: data.sources
+          sources: data.sources,
+          memorySaved: data.memorySaved,
+          savedMemory: data.savedMemory
         }]);
+        if (data.memorySaved && data.savedMemory) {
+          setMemorySaved(true);
+          setSavedMemory(data.savedMemory);
+        } else {
+          setMemorySaved(false);
+          setSavedMemory(null);
+        }
       } else {
         throw new Error(data.response || 'Failed to get response');
       }
@@ -334,65 +286,63 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
         </p>
       </div>
 
-      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 h-96 overflow-y-auto mb-4">
-        {chatHistory.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 dark:text-gray-400">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M12 16v-4"></path>
-              <path d="M12 8h.01"></path>
-            </svg>
-            <p>Start a conversation with EduBot by asking a question below.</p>
-            <p className="text-sm mt-2">Try: &quot;Explain the theory of relativity&quot; or &quot;How does photosynthesis work?&quot;</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {chatHistory.map((chat: { question: string; answer: string; sources?: string[] }, index: number) => (
-              <div key={index} className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="bg-blue-100 dark:bg-blue-900 rounded-full p-2 text-blue-600 dark:text-blue-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm text-gray-500 dark:text-gray-400">You</p>
-                    <p className="mt-1">{chat.question}</p>
-                  </div>
+      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 h-96 overflow-y-auto mb-4 relative">
+        <div className="space-y-6">
+          {chatHistory.map((chat: { question: string; answer: string; sources?: string[]; memorySaved?: boolean; savedMemory?: Record<string, unknown> | null }, index: number) => (
+            <div key={index} className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-100 dark:bg-blue-900 rounded-full p-2 text-blue-600 dark:text-blue-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
                 </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="bg-green-100 dark:bg-green-900 rounded-full p-2 text-green-600 dark:text-green-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="M12 16v-4"></path>
-                      <path d="M12 8h.01"></path>
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm text-gray-500 dark:text-gray-400">EduBot</p>
-                    <div className="mt-1 prose dark:prose-invert prose-sm max-w-none">
-                      <p>{chat.answer}</p>
-                    </div>
-                    
-                    {/*{chat.sources && chat.sources.length > 0 && (
-                      <div className="mt-3">
-                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Sources:</p>
-                        <ul className="mt-1 text-sm text-gray-500 dark:text-gray-400 list-disc list-inside">
-                          {chat.sources.map((source, idx) => (
-                            <li key={idx}>{source}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}*/}
-                  </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm text-gray-500 dark:text-gray-400">You</p>
+                  <p className="mt-1">{chat.question}</p>
                 </div>
               </div>
-            ))}
-            <div ref={chatEndRef} />
-          </div>
-        )}
+
+              <div className="flex items-start gap-3 relative">
+                <div className="bg-green-100 dark:bg-green-900 rounded-full p-2 text-green-600 dark:text-green-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 16v-4"></path>
+                    <path d="M12 8h.01"></path>
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm text-gray-500 dark:text-gray-400">EduBot</p>
+                  <div className="mt-1 prose dark:prose-invert prose-sm max-w-none">
+                    <p>{chat.answer}</p>
+                  </div>
+                </div>
+                {chat.memorySaved && chat.savedMemory && (
+                  <span className="absolute top-0 right-0 group cursor-pointer z-10">
+                    <svg className="inline w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11H9v-2h2v2zm0-4H9V7h2v2z"/></svg>
+                    <div className="absolute right-0 mt-2 w-64 z-20 hidden group-hover:block bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 text-xs text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
+                      {Object.entries(chat.savedMemory).map(([k, v]) => (
+                        <div key={k}><span className="font-semibold">{k}:</span> {String(v)}</div>
+                      ))}
+                    </div>
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+          {chatHistory.length === 0 && (
+            <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 dark:text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 16v-4"></path>
+                <path d="M12 8h.01"></path>
+              </svg>
+              <p>Start a conversation with EduBot by asking a question below.</p>
+              <p className="text-sm mt-2">Try: &quot;Explain the theory of relativity&quot; or &quot;How does photosynthesis work?&quot;</p>
+            </div>
+          )}
+          <div ref={chatEndRef} />
+        </div>
       </div>
 
       <form onSubmit={handleChatSubmit} className="space-y-4">
@@ -857,5 +807,13 @@ function GenerateQuiz({ authToken, setIsLoading, setErrorMessage, fileId }: { au
         </div>
       )}
     </div>
+  );
+}
+
+export default function EduBotPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EduBotContent />
+    </Suspense>
   );
 }

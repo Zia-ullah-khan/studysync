@@ -14,6 +14,11 @@ interface UserTranscription {
 interface UserData {
   files?: UserFile[];
   transcriptions?: UserTranscription[];
+  memory?: unknown[];
+  user?: {
+    memory?: unknown[];
+    [key: string]: unknown;
+  };
   [key: string]: unknown;
 }
 
@@ -131,6 +136,52 @@ export default function UserDataPage() {
             {deleting ? 'Deleting...' : 'Delete All Data'}
           </button>
         </div>
+        {userData && Array.isArray(userData.memory) && userData.memory.length > 0 && (
+          <div className="mb-6">
+            <div className="font-semibold mb-2">Memory:</div>
+            <div className="space-y-3">
+              {userData.memory.map((mem, idx) => (
+                <div key={idx} className="border rounded p-3 bg-yellow-50 dark:bg-yellow-900/20">
+                  {typeof mem === 'object' && mem !== null ? (
+                    <ul className="list-disc pl-5 text-sm">
+                      {Object.entries(mem).map(([k, v]) => (
+                        <li key={k}><span className="font-semibold capitalize">{k}:</span> {Array.isArray(v) ? v.join(', ') : String(v)}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span>{String(mem)}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {userData && userData.user && Array.isArray(userData.user.memory) && userData.user.memory.length > 0 && (
+          <div className="mb-6">
+            <div className="font-semibold mb-2">User Memory:</div>
+            <div className="space-y-3">
+              {userData.user.memory.map((mem: unknown, idx: number) => {
+                if (typeof mem === 'object' && mem !== null) {
+                  return (
+                    <div key={idx} className="border rounded p-3 bg-blue-50 dark:bg-blue-900/20">
+                      <ul className="list-disc pl-5 text-sm">
+                        {Object.entries(mem as Record<string, unknown>).map(([k, v]) => (
+                          <li key={k}><span className="font-semibold capitalize">{k}:</span> {Array.isArray(v) ? v.join(', ') : String(v)}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div key={idx} className="border rounded p-3 bg-blue-50 dark:bg-blue-900/20">
+                      <span>{String(mem)}</span>
+                    </div>
+                  );
+                }
+              })}
+            </div>
+          </div>
+        )}
         {userData && userData.files && Array.isArray(userData.files) && userData.files.length > 0 && (
           <div className="mb-6">
             <div className="font-semibold mb-2">Files:</div>
@@ -187,11 +238,18 @@ export default function UserDataPage() {
         )}
         {userData && typeof userData === 'object' && !Array.isArray(userData) ? (
           <div className="space-y-2">
-            {Object.entries(userData).filter(([key]) => key !== 'files' && key !== 'transcriptions').map(([key, value]) => (
-              <div key={key} className="flex flex-col sm:flex-row sm:items-center sm:gap-2 border-b border-gray-200 dark:border-gray-700 pb-2 last:border-b-0">
-                <span className="font-semibold capitalize w-32 text-gray-700 dark:text-gray-200">{key}:</span>
-                <span className="break-all text-gray-900 dark:text-gray-100">{typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}</span>
-              </div>
+            {Object.entries(userData).filter(([key]) => key !== 'files' && key !== 'transcriptions' && key !== 'memory').map(([key, value]) => (
+              key === 'user' && value && typeof value === 'object' && !Array.isArray(value) ? (
+                <div key={key} className="flex flex-col sm:flex-row sm:items-center sm:gap-2 border-b border-gray-200 dark:border-gray-700 pb-2 last:border-b-0">
+                  <span className="font-semibold capitalize w-32 text-gray-700 dark:text-gray-200">{key}:</span>
+                  <span className="break-all text-gray-900 dark:text-gray-100">{JSON.stringify({ ...value, memory: undefined }, null, 2)}</span>
+                </div>
+              ) : (
+                <div key={key} className="flex flex-col sm:flex-row sm:items-center sm:gap-2 border-b border-gray-200 dark:border-gray-700 pb-2 last:border-b-0">
+                  <span className="font-semibold capitalize w-32 text-gray-700 dark:text-gray-200">{key}:</span>
+                  <span className="break-all text-gray-900 dark:text-gray-100">{typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}</span>
+                </div>
+              )
             ))}
           </div>
         ) : userData ? (
