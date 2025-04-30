@@ -4,6 +4,10 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 
+const API_BASE_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:3001' 
+  : 'https://studysyncapi.onrender.com';
+
 interface UserData {
   email: string;
   userId?: string | number;
@@ -19,7 +23,7 @@ function LoginContent() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(false); // <-- Add state for checkbox
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -47,12 +51,12 @@ function LoginContent() {
 
     try {
       if (isLogin) {
-        const response = await fetch('https://studysyncapi.onrender.com/auth/login', {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ _email: email, _password: password }),
+          body: JSON.stringify({ email: email, password: password }),
         });
         
         const data = await response.json();
@@ -81,7 +85,7 @@ function LoginContent() {
           setIsLoading(false);
           return;
         }
-        const response = await fetch('https://studysyncapi.onrender.com/auth/signup', {
+        const response = await fetch(`${API_BASE_URL}/auth/signup`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -259,7 +263,7 @@ function LoginContent() {
               <button
                 type="submit"
                 className={`w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium ${(!isLogin && !agreedToTerms) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                disabled={isLoading || (!isLogin && !agreedToTerms)} // <-- Disable if not agreed
+                disabled={isLoading || (!isLogin && !agreedToTerms)}
               >
                 {isLoading ? 'Processing...' : isLogin ? 'Log In' : 'Sign Up'}
               </button>

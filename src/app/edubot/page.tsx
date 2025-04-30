@@ -1,8 +1,12 @@
 "use client";
-import React, { useState, useEffect, useRef, Suspense } from 'react'; // Import Suspense
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
+
+const API_BASE_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:3001' 
+  : 'https://studysyncapi.onrender.com';
 
 type ChatResponse = {
   response: string;
@@ -77,7 +81,7 @@ function EduBotContent() {
       formData.append('file', file);
 
       try {
-        const uploadResponse = await axios.post('https://studysyncapi.onrender.com/uploads/uploads', formData, {
+        const uploadResponse = await axios.post(`${API_BASE_URL}/uploads/uploads`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${authToken}`,
@@ -88,7 +92,7 @@ function EduBotContent() {
         const uploadedFileId = uploadResponse.data.fileId;
         setFileId(uploadedFileId);
 
-        const fileContentResponse = await axios.get(`https://studysyncapi.onrender.com/uploads/file?id=${uploadedFileId}`, {
+        const fileContentResponse = await axios.get(`${API_BASE_URL}/uploads/file?id=${uploadedFileId}`, {
           headers: {
             Authorization: `Bearer ${authToken}`,
           },
@@ -231,17 +235,17 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
     setErrorMessage('');
 
     try {
-      const response = await fetch('https://studysyncapi.onrender.com/edubot/chat', {
+      const response = await fetch(`${API_BASE_URL}/edubot/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({
-          _prompt: userPrompt,
-          _context: context,
-          _userId: JSON.parse(localStorage.getItem('userData') || '{}').userId || '',
-          _fileId: fileId
+          prompt: userPrompt,
+          context: context,
+          userId: JSON.parse(localStorage.getItem('userData') || '{}').userId || '',
+          fileId: fileId
         })
       });
 
@@ -419,17 +423,17 @@ function GenerateFlashcards({ authToken, setIsLoading, setErrorMessage, fileId }
     setFlashcards([]);
 
     try {
-      const response = await fetch('https://studysyncapi.onrender.com/edubot/flashcards', {
+      const response = await fetch(`${API_BASE_URL}/edubot/flashcards`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({
-          _topic: topic,
-          _count: count,
-          _userId: JSON.parse(localStorage.getItem('userData') || '{}').userId || '',
-          _fileId: fileId
+          topic: topic,
+          count: count,
+          userId: JSON.parse(localStorage.getItem('userData') || '{}').userId || '',
+          fileId: fileId
         })
       });
 
@@ -604,18 +608,18 @@ function GenerateQuiz({ authToken, setIsLoading, setErrorMessage, fileId }: { au
     setShowResults(false);
 
     try {
-      const response = await fetch('https://studysyncapi.onrender.com/edubot/quiz', {
+      const response = await fetch(`${API_BASE_URL}/edubot/quiz`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({
-          _topic: topic,
-          _difficulty: difficulty,
-          _questionCount: questionCount,
-          _userId: JSON.parse(localStorage.getItem('userData') || '{}').userId || '',
-          _fileId: fileId
+          topic: topic,
+          difficulty: difficulty,
+          questionCount: questionCount,
+          userId: JSON.parse(localStorage.getItem('userData') || '{}').userId || '',
+          fileId: fileId
         })
       });
 

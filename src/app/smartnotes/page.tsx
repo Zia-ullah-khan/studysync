@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+const API_BASE_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:3001' 
+  : 'https://studysyncapi.onrender.com';
+
 type TranscriptionResponse = {
   transcript: string;
   confidence?: number;
@@ -82,7 +86,7 @@ export default function SmartNotes() {
       }
 
       console.log('Uploading audio file:', selectedFile.name);
-      const uploadResponse = await fetch('https://studysyncapi.onrender.com/smartnotes/audio', {
+      const uploadResponse = await fetch(`${API_BASE_URL}/smartnotes/audio`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -109,7 +113,7 @@ export default function SmartNotes() {
         userId: userId
       });
 
-      const transcribeResponse = await fetch('https://studysyncapi.onrender.com/smartnotes/transcribe', {
+      const transcribeResponse = await fetch(`${API_BASE_URL}/smartnotes/transcribe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

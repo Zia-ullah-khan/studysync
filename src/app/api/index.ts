@@ -1,15 +1,14 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-// API base URL
-const API_BASE_URL = 'https://studysyncapi.onrender.com';
+const API_BASE_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:3001' 
+  : 'https://studysyncapi.onrender.com';
 
-// Auth related endpoints
 export async function login(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { _email: email, _password: password } = req.body;
+    const { email, password } = req.body;
     console.log('Login attempt with:', { email, password });
     
-    // Call the API at localhost:3001
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -17,204 +16,230 @@ export async function login(req: NextApiRequest, res: NextApiResponse) {
     });
     
     const data = await response.json();
-    res.status(200).json(data);
+    res.status(response.status).json(data);
   } catch (_error) {
     console.error('Login error:', _error);
-    res.status(500).json({ success: false, message: 'Authentication failed' });
+    res.status(500).json({ success: false, message: 'Authentication failed due to server error' });
   }
 }
 
 export async function signup(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { _email: email, _password: password } = req.body;
-    console.log('Signup attempt with:', { email, password });
+    const { email, password, name } = req.body;
+    console.log('Signup attempt with:', { email, password, name });
     
-    // Call the API at localhost:3001
     const response = await fetch(`${API_BASE_URL}/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, name }),
     });
     
     const data = await response.json();
-    res.status(200).json(data);
+    res.status(response.status).json(data);
   } catch (_error) {
     console.error('Signup error:', _error);
-    res.status(500).json({ success: false, message: 'Registration failed' });
+    res.status(500).json({ success: false, message: 'Registration failed due to server error' });
   }
 }
 
-// EduBot API endpoints
 export async function chatWithAI(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { _prompt: prompt, _context: context, _userId: userId } = req.body;
-    console.log('AI chat request:', { prompt, context, userId });
+    const { prompt, context, userId, fileId } = req.body;
+    console.log('AI chat request:', { prompt, context, userId, fileId });
     
-    // Call the API at localhost:3001
     const response = await fetch(`${API_BASE_URL}/edubot/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, context, userId }),
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(req.headers.authorization && { 'Authorization': req.headers.authorization })
+       },
+      body: JSON.stringify({ prompt, context, userId, fileId }),
     });
     
     const data = await response.json();
-    res.status(200).json(data);
+    res.status(response.status).json(data);
   } catch (_error) {
     console.error('AI chat error:', _error);
-    res.status(500).json({ error: 'Failed to get AI response' });
+    res.status(500).json({ error: 'Failed to get AI response due to server error' });
   }
 }
 
 export async function generateFlashcards(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { _topic: topic, _count: count, _userId: userId } = req.body;
-    console.log('Flashcard generation for:', { topic, count, userId });
-    const flashcards = [
-      { question: 'Sample question 1?', answer: 'Sample answer 1' },
-      { question: 'Sample question 2?', answer: 'Sample answer 2' }
-    ];
-    res.status(200).json({ flashcards });
+    const { topic, count, userId, fileId } = req.body;
+    console.log('Flashcard generation for:', { topic, count, userId, fileId });
+
+    const response = await fetch(`${API_BASE_URL}/edubot/flashcards`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(req.headers.authorization && { 'Authorization': req.headers.authorization })
+      },
+      body: JSON.stringify({ topic, count, userId, fileId }),
+    });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
   } catch (_error) {
     console.error('Flashcard generation error:', _error);
-    res.status(500).json({ error: 'Failed to generate flashcards' });
+    res.status(500).json({ error: 'Failed to generate flashcards due to server error' });
   }
 }
 
 export async function generateQuiz(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { _topic: topic, _difficulty: difficulty, _questionCount: questionCount, _userId: userId } = req.body;
-    console.log('Quiz generation for:', { topic, difficulty, questionCount, userId });
-    const quiz = {
-      id: 'quiz-123',
-      questions: [
-        {
-          id: 'q1',
-          text: 'Sample question 1',
-          options: ['Option A', 'Option B', 'Option C', 'Option D'],
-          correctAnswer: 0
-        }
-      ]
-    };
-    res.status(200).json({ quiz });
+    const { topic, difficulty, questionCount, userId, fileId } = req.body;
+    console.log('Quiz generation for:', { topic, difficulty, questionCount, userId, fileId });
+
+    const response = await fetch(`${API_BASE_URL}/edubot/quiz`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(req.headers.authorization && { 'Authorization': req.headers.authorization })
+      },
+      body: JSON.stringify({ topic, difficulty, questionCount, userId, fileId }),
+    });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
   } catch (_error) {
     console.error('Quiz generation error:', _error);
-    res.status(500).json({ error: 'Failed to generate quiz' });
+    res.status(500).json({ error: 'Failed to generate quiz due to server error' });
   }
 }
 
 // SmartNotes API endpoints
+
 export async function uploadAudio(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    res.status(200).json({ 
-      success: true, 
-      fileId: 'audio-123',
-      message: 'Audio file uploaded successfully' 
-    });
-  } catch (_error) {
-    console.error('Audio upload error:', _error);
-    res.status(500).json({ error: 'Failed to upload audio file' });
-  }
+  console.warn('uploadAudio proxy called - direct frontend upload recommended');
+  res.status(501).json({ error: 'Direct upload recommended, proxy not fully implemented' });
 }
 
 export async function startRecording(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { _userId: userId, _sessionName: sessionName } = req.body;
+    const { userId, sessionName } = req.body;
     console.log('Starting recording for:', { userId, sessionName });
-    res.status(200).json({ 
-      sessionId: 'recording-123',
-      websocketUrl: 'wss://api.studysync.com/recordings/socket' 
+
+    const response = await fetch(`${API_BASE_URL}/smartnotes/recordings/start`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(req.headers.authorization && { 'Authorization': req.headers.authorization })
+      },
+      body: JSON.stringify({ userId, sessionName }),
     });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
   } catch (_error) {
     console.error('Recording start error:', _error);
-    res.status(500).json({ error: 'Failed to start recording session' });
+    res.status(500).json({ error: 'Failed to start recording session due to server error' });
   }
 }
 
 export async function transcribeAudio(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { _fileId: fileId, _language: language = 'en' } = req.body;
-    console.log('Transcribing audio:', { fileId, language });
-    res.status(200).json({
-      transcript: 'This is a sample transcript of the recorded lecture.',
-      confidence: 0.95,
-      durationSeconds: 300
+    const { fileId, language = 'en', userId } = req.body;
+    console.log('Transcribing audio:', { fileId, language, userId });
+
+    const response = await fetch(`${API_BASE_URL}/smartnotes/transcribe`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(req.headers.authorization && { 'Authorization': req.headers.authorization })
+      },
+      body: JSON.stringify({ fileId, language, userId }),
     });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
   } catch (_error) {
     console.error('Transcription error:', _error);
-    res.status(500).json({ error: 'Failed to transcribe audio' });
+    res.status(500).json({ error: 'Failed to transcribe audio due to server error' });
   }
 }
 
 export async function summarizeTranscript(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { _transcript: transcript, _maxPoints: maxPoints = 5 } = req.body;
-    console.log('Summarizing transcript with params:', { transcript: transcript?.substring(0, 50) + '...', maxPoints });
-    res.status(200).json({
-      summary: 'This is a concise summary of the lecture content.',
-      keyPoints: [
-        'Key point 1 about the main topic',
-        'Key point 2 about a related concept'
-      ],
-      topics: ['Physics', 'Quantum Mechanics']
+    const { transcript, maxPoints = 5, userId } = req.body;
+    console.log('Summarizing transcript with params:', { transcript: transcript?.substring(0, 50) + '...', maxPoints, userId });
+
+    const response = await fetch(`${API_BASE_URL}/smartnotes/summarize`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(req.headers.authorization && { 'Authorization': req.headers.authorization })
+      },
+      body: JSON.stringify({ transcript, maxPoints, userId }),
     });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
   } catch (_error) {
     console.error('Summarization error:', _error);
-    res.status(500).json({ error: 'Failed to summarize transcript' });
+    res.status(500).json({ error: 'Failed to summarize transcript due to server error' });
   }
 }
 
 // LearnSphere API endpoints
 export async function getUserDashboard(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { _userId: userId } = req.query;
+    const { userId } = req.query;
     console.log('Getting dashboard for user:', userId);
-    res.status(200).json({
-      learningStreak: 7,
-      topicsStudied: 12,
-      quizzesTaken: 5,
-      averageScore: 85,
-      weakTopics: ['Organic Chemistry', 'Calculus'],
-      strongTopics: ['Physics', 'Statistics']
+
+    const response = await fetch(`${API_BASE_URL}/learnsphere/dashboard?userId=${userId}`, {
+      method: 'GET',
+      headers: { 
+        ...(req.headers.authorization && { 'Authorization': req.headers.authorization })
+      },
     });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
   } catch (_error) {
     console.error('Dashboard retrieval error:', _error);
-    res.status(500).json({ error: 'Failed to get dashboard data' });
+    res.status(500).json({ error: 'Failed to get dashboard data due to server error' });
   }
 }
 
 export async function getTopicMastery(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { _userId: userId, subject } = req.query;
+    const { userId, subject } = req.query;
     console.log('Fetching topic mastery for:', { userId, subject });
-    res.status(200).json({
-      subject,
-      topics: [
-        { name: 'Topic 1', masteryLevel: 0.85, quizCount: 3 },
-        { name: 'Topic 2', masteryLevel: 0.65, quizCount: 2 }
-      ]
+
+    const response = await fetch(`${API_BASE_URL}/learnsphere/mastery?userId=${userId}&subject=${subject}`, {
+      method: 'GET',
+      headers: { 
+        ...(req.headers.authorization && { 'Authorization': req.headers.authorization })
+      },
     });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
   } catch (_error) {
     console.error('Topic mastery retrieval error:', _error);
-    res.status(500).json({ error: 'Failed to get topic mastery data' });
+    res.status(500).json({ error: 'Failed to get topic mastery data due to server error' });
   }
 }
 
 export async function getRecommendations(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { _userId: userId } = req.query;
+    const { userId } = req.query;
     console.log('Getting recommendations for user:', userId);
-    res.status(200).json({
-      recommendedTopics: [
-        { topic: 'Organic Chemistry', reason: 'Low mastery level' },
-        { topic: 'Calculus', reason: 'Not practiced recently' }
-      ],
-      recommendedResources: [
-        { type: 'video', title: 'Understanding Orbitals', url: 'https://example.com/video1' },
-        { type: 'quiz', title: 'Derivatives Practice', id: 'quiz-456' }
-      ]
+
+    const response = await fetch(`${API_BASE_URL}/learnsphere/recommendations?userId=${userId}`, {
+      method: 'GET',
+      headers: { 
+        ...(req.headers.authorization && { 'Authorization': req.headers.authorization })
+      },
     });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
   } catch (_error) {
     console.error('Recommendations retrieval error:', _error);
-    res.status(500).json({ error: 'Failed to get recommendations' });
+    res.status(500).json({ error: 'Failed to get recommendations due to server error' });
   }
 }
+
+// Add other API proxy functions as needed, following the pattern above
