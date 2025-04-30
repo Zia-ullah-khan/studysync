@@ -5,6 +5,9 @@ export default function PrivacyPolicy() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
       <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mt-12">
         <h1 className="text-3xl font-bold mb-6 text-center">Privacy Policy</h1>
+        <p className="text-center italic text-lg mb-6 text-gray-600 dark:text-gray-400">
+          &quot;Data privacy and protection is not a feature, it&apos;s a basic human right.&quot; - Zia Ullah Khan
+        </p>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
           <strong>StudySync</strong> is committed to protecting your privacy. This policy explains what data we collect, how we use it, and your rights regarding your information. We comply with the General Data Protection Regulation (GDPR) and the California Consumer Privacy Act (CCPA) where applicable.
         </p>
