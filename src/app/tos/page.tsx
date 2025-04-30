@@ -16,7 +16,7 @@ export default function TermsOfService() {
         <ul className="list-disc list-inside mb-4 text-gray-700 dark:text-gray-200">
           <li>You must provide accurate and complete information when creating an account.</li>
           <li>You are responsible for maintaining the confidentiality of your account credentials.</li>
-          <li>You are responsible for all activities that occur under your account.</li>
+          <li>You are responsible for all activities that occur under your account, including the content of your chat sessions, flashcards, quizzes, and quiz answers.</li>
         </ul>
         <h2 className="text-xl font-semibold mt-6 mb-2">3. Acceptable Use</h2>
         <ul className="list-disc list-inside mb-4 text-gray-700 dark:text-gray-200">
@@ -73,12 +73,12 @@ export default function TermsOfService() {
         </p>
         <h2 className="text-xl font-semibold mt-6 mb-2">14. User Data and Privacy Rights</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
-          StudySync is committed to protecting your privacy. Please review our <Link href="/privacy" className="text-blue-600 dark:text-blue-400 underline">Privacy Policy</Link> for details on how we collect, use, and protect your data, and your rights under applicable privacy laws (such as GDPR and CCPA).
+          StudySync stores your user data, including chat sessions, flashcard sets, quizzes, quiz scores, and AI-generated recommendations and progress, as part of your account. You may access, download, or delete these data types at any time from the User Data page or via available API endpoints. Deletion requests will remove these records as well as your account information, subject to our data retention policy. Please review our <Link href="/privacy" className="text-blue-600 dark:text-blue-400 underline">Privacy Policy</Link> for details on how we collect, use, and protect your data, and your rights under applicable privacy laws (such as GDPR and CCPA).
         </p>
 
         <h2 className="text-xl font-semibold mt-6 mb-2">15. API Terms of Service</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
-          The following terms apply specifically to your use of the StudySync Application Programming Interface (API), if you choose to access it. Access to the API is a paid service, separate from the free use of the main StudySync application.
+          The following terms apply specifically to your use of the StudySync Application Programming Interface (API), if you choose to access it. Access to the API is a paid service, separate from the free use of the main StudySync application. The API provides endpoints to manage chat sessions, flashcard sets, quizzes, quiz scores, and recommendations, in addition to other user data.
         </p>
         <ul className="list-disc space-y-3 pl-5 mb-4 text-gray-700 dark:text-gray-200">
           <li>

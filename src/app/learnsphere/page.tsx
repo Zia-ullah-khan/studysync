@@ -15,6 +15,13 @@ interface Recommendation {
   priority: 'high' | 'medium' | 'low';
 }
 
+interface ApiRecommendation {
+  id?: number;
+  title?: string;
+  topic?: string;
+  priority?: 'high' | 'medium' | 'low';
+}
+
 interface DashboardData {
   learningStreak: number;
   topicsStudied: number;
@@ -30,12 +37,6 @@ export default function LearnSphere() {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(true);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-  const [animationCompleted, setAnimationCompleted] = useState({
-    streak: false,
-    topics: false,
-    quizzes: false,
-    score: false
-  });
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -53,8 +54,53 @@ export default function LearnSphere() {
 
   useEffect(() => {
     const fetchDashboard = async (): Promise<void> => {
-      // fake data for testing
-      setTimeout(() => {
+      const token = localStorage.getItem('authToken');
+      const userData = localStorage.getItem('userData');
+      const userId = userData ? JSON.parse(userData).userId : null;
+      if (!token || !userId) return;
+      try {
+        const recRes = await fetch(
+          `${process.env.NODE_ENV === 'development'
+            ? 'http://localhost:3001'
+            : 'https://studysyncapi.onrender.com'
+          }/learnsphere/recommendations?userId=${userId}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+        const recData = await recRes.json();
+        console.log('Recommendations API response:', recData);
+        setDashboardData({
+          learningStreak: 7,
+          topicsStudied: 12,
+          quizzesTaken: 5,
+          averageScore: 85,
+          weakTopics: ["Organic Chemistry", "Calculus"],
+          strongTopics: ["Physics", "Statistics"],
+          progressBySubject: [
+            { subject: "Math", progress: 65 },
+            { subject: "Science", progress: 82 },
+            { subject: "History", progress: 45 },
+            { subject: "Language", progress: 78 },
+            ...(Array.isArray(recData.progressBySubject) ? recData.progressBySubject : [])
+          ],
+          recommendations: Array.isArray(recData.recommendations)
+            ? recData.recommendations.map((t: ApiRecommendation, i: number) => ({
+                id: t.id ?? i + 1,
+                title: t.title ?? t.topic ?? 'Untitled',
+                priority: t.priority ?? 'medium'
+              }))
+            : Array.isArray(recData.recommendedTopics)
+              ? recData.recommendedTopics.map((t: ApiRecommendation, i: number) => ({
+                  id: i + 1,
+                  title: t.topic ?? t.title ?? 'Untitled',
+                  priority: t.priority ?? 'medium'
+                }))
+              : []
+        });
+      } catch {
         setDashboardData({
           learningStreak: 7,
           topicsStudied: 12,
@@ -68,14 +114,11 @@ export default function LearnSphere() {
             { subject: "History", progress: 45 },
             { subject: "Language", progress: 78 }
           ],
-          recommendations: [
-            { id: 1, title: "Review Calculus Derivatives", priority: "high" },
-            { id: 2, title: "Practice Organic Chemistry Nomenclature", priority: "high" },
-            { id: 3, title: "Strengthen Physics Knowledge with New Quiz", priority: "medium" }
-          ]
+          recommendations: []
         });
+      } finally {
         setLoading(false);
-      }, 1500);
+      }
     };
 
     fetchDashboard();
@@ -99,8 +142,6 @@ export default function LearnSphere() {
         
         if (percentage < 1) {
           requestAnimationFrame(updateCounter);
-        } else {
-          setAnimationCompleted(prev => ({ ...prev, [key]: true }));
         }
       };
 
@@ -207,7 +248,7 @@ export default function LearnSphere() {
             <div className="col-span-1 md:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6">
               <h3 className="font-bold text-lg mb-4">Progress by Subject</h3>
               <div className="space-y-4">
-                {dashboardData?.progressBySubject.map((subject: SubjectProgress, index: number) => (
+                {dashboardData?.progressBySubject.map((subject: SubjectProgress) => (
                   <div key={subject.subject} className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>{subject.subject}</span>
@@ -237,10 +278,10 @@ export default function LearnSphere() {
                 <div>
                   <h4 className="font-medium text-green-500 dark:text-green-400 mb-2">Strong Topics</h4>
                   <ul className="space-y-2">
-                    {dashboardData?.strongTopics.map((topic: string, index: number) => (
+                    {dashboardData?.strongTopics.map((topic: string) => (
                       <li 
                         key={topic} 
-                        className="flex items-center gap-2 opacity-0"
+                        className="flex items-center gap-2"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -253,10 +294,10 @@ export default function LearnSphere() {
                 <div>
                   <h4 className="font-medium text-red-500 dark:text-red-400 mb-2">Weak Topics</h4>
                   <ul className="space-y-2">
-                    {dashboardData?.weakTopics.map((topic: string, index: number) => (
+                    {dashboardData?.weakTopics.map((topic: string) => (
                       <li 
                         key={topic} 
-                        className="flex items-center gap-2 opacity-0"
+                        className="flex items-center gap-2"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
@@ -271,44 +312,50 @@ export default function LearnSphere() {
 
             <div className="col-span-1 md:col-span-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6">
               <h3 className="font-bold text-lg mb-4">Personalized Recommendations</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {dashboardData?.recommendations.map((rec: Recommendation, index: number) => (
-                  <div 
-                    key={rec.id}
-                    className={`p-4 rounded-lg border ${
-                      rec.priority === 'high' ? 'border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/20' :
-                      rec.priority === 'medium' ? 'border-yellow-200 dark:border-yellow-900 bg-yellow-50 dark:bg-yellow-900/20' :
-                      'border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/20'
-                    } transform transition-all duration-300 hover:-translate-y-1 hover:shadow-md opacity-0`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`mt-0.5 ${
-                        rec.priority === 'high' ? 'text-red-500 dark:text-red-400' :
-                        rec.priority === 'medium' ? 'text-yellow-500 dark:text-yellow-400' :
-                        'text-blue-500 dark:text-blue-400'
-                      }`}>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="font-medium">
-                          {rec.title}
-                        </h4>
-                        <div className="mt-2">
-                          <button className={`text-xs py-1 px-3 rounded-full ${
-                            rec.priority === 'high' ? 'bg-red-100 dark:bg-red-800/40 text-red-700 dark:text-red-200' :
-                            rec.priority === 'medium' ? 'bg-yellow-100 dark:bg-yellow-800/40 text-yellow-700 dark:text-yellow-200' :
-                            'bg-blue-100 dark:bg-blue-800/40 text-blue-700 dark:text-blue-200'
-                          }`}>
-                            Start Now
-                          </button>
+              {dashboardData?.recommendations && dashboardData.recommendations.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {dashboardData.recommendations.map((rec: Recommendation) => (
+                    <div 
+                      key={rec.id}
+                      className={`p-4 rounded-lg border ${
+                        rec.priority === 'high' ? 'border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/20' :
+                        rec.priority === 'medium' ? 'border-yellow-200 dark:border-yellow-900 bg-yellow-50 dark:bg-yellow-900/20' :
+                        'border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/20'
+                      } transform transition-all duration-300 hover:-translate-y-1 hover:shadow-md`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`mt-0.5 ${
+                          rec.priority === 'high' ? 'text-red-500 dark:text-red-400' :
+                          rec.priority === 'medium' ? 'text-yellow-500 dark:text-yellow-400' :
+                          'text-blue-500 dark:text-blue-400'
+                        }`}>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 className="font-medium">
+                            {rec.title}
+                          </h4>
+                          <div className="mt-2">
+                            <button className={`text-xs py-1 px-3 rounded-full ${
+                              rec.priority === 'high' ? 'bg-red-100 dark:bg-red-800/40 text-red-700 dark:text-red-200' :
+                              rec.priority === 'medium' ? 'bg-yellow-100 dark:bg-yellow-800/40 text-yellow-700 dark:text-yellow-200' :
+                              'bg-blue-100 dark:bg-blue-800/40 text-blue-700 dark:text-blue-200'
+                            }`}>
+                              Start Now
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-gray-500 dark:text-gray-400 text-center py-8">
+                  No recommendations available at this time.
+                </div>
+              )}
             </div>
           </div>
         )}

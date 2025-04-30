@@ -11,6 +11,8 @@ const API_BASE_URL = process.env.NODE_ENV === 'development'
 type ChatResponse = {
   response: string;
   sources: string[];
+  sessionId?: string;
+  isNewSession?: boolean;
   memorySaved?: boolean;
   savedMemory?: Record<string, unknown> | null;
 };
@@ -37,6 +39,8 @@ type QuizResponse = {
     questions: QuizQuestion[];
   };
 };
+
+type QuizWithId = { id?: string; _id?: string; questions: QuizQuestion[] };
 
 function EduBotContent() {
   const router = useRouter();
@@ -209,6 +213,7 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
 }) {
   const [prompt, setPrompt] = useState('');
   const [chatHistory, setChatHistory] = useState<{ question: string; answer: string; sources?: string[]; memorySaved?: boolean; savedMemory?: Record<string, unknown> | null }[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -245,11 +250,16 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
           prompt: userPrompt,
           context: context,
           userId: JSON.parse(localStorage.getItem('userData') || '{}').userId || '',
-          fileId: fileId
+          fileId: fileId,
+          sessionId: sessionId || undefined
         })
       });
 
       const data: ChatResponse = await response.json();
+
+      if (data.sessionId) {
+        setSessionId(data.sessionId);
+      }
 
       if (response.ok) {
         setChatHistory(prev => [...prev, {
@@ -653,8 +663,30 @@ function GenerateQuiz({ authToken, setIsLoading, setErrorMessage, fileId }: { au
     });
   };
 
-  const handleQuizSubmission = () => {
+  const handleQuizSubmission = async () => {
     setShowResults(true);
+    if (!quiz || !authToken) return;
+    const score = calculateScore();
+    const quizWithId = quiz as QuizWithId;
+    const quizId = quizWithId._id || quizWithId.id;
+    const payload = {
+      quizId: quizId,
+      score: score,
+      totalQuestions: quiz.questions.length,
+      answers: userAnswers
+    };
+    try {
+      await fetch(`${API_BASE_URL}/edubot/quiz/score`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(payload)
+      });
+    } catch (err) {
+      console.error('Failed to submit quiz score:', err);
+    }
   };
 
   const calculateScore = () => {

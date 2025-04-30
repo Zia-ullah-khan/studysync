@@ -19,6 +19,10 @@ export default function PrivacyPolicy() {
           <li>Your account information (name, email, user ID)</li>
           <li>Uploaded files and transcriptions</li>
           <li>Usage data (e.g., interactions with EduBot, SmartNotes, LearnSphere)</li>
+          <li>Chat sessions and conversation history</li>
+          <li>Flashcard sets and quizzes you generate or complete</li>
+          <li>Quiz scores and results</li>
+          <li>AI-generated recommendations and progress tracking data</li>
           <li>Information processed and potentially stored by our AI features, including data quality assessment which may analyze names, contact information, addresses, and other provided data to assess relevance or accuracy for service improvement. This data is subject to the retention and deletion policies outlined below.</li>
         </ul>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
@@ -33,7 +37,7 @@ export default function PrivacyPolicy() {
         <ul className="list-disc list-inside mb-4 text-gray-700 dark:text-gray-200">
           <li>To provide and improve StudySync features</li>
           <li>To personalize your learning experience</li>
-          <li>To generate AI-powered responses, flashcards, quizzes, and recommendations</li>
+          <li>To generate AI-powered responses, flashcards, quizzes, recommendations, and track your learning progress</li>
           <li>To operate AI features like data quality assessment, helping maintain the integrity and relevance of information (including names, addresses, contact info) within our system for service enhancement.</li>
         </ul>
         <h2 className="text-xl font-semibold mt-6 mb-2">Data Retention</h2>
@@ -50,15 +54,14 @@ export default function PrivacyPolicy() {
         </p>
         <h2 className="text-xl font-semibold mt-6 mb-2">Your Rights</h2>
         <p className="mb-2 text-gray-700 dark:text-gray-200">
-          Under GDPR and CCPA, you have the following rights regarding your personal data:
+          Under GDPR and CCPA, you have the following rights regarding your personal data, including chat sessions, flashcards, quizzes, quiz scores, and recommendations:
         </p>
         <ul className="list-disc list-inside mb-4 text-gray-700 dark:text-gray-200">
-          <li>Access, download, or delete your data at any time from the <Link href="/userdata" className="text-blue-600 dark:text-blue-400 underline">User Data</Link> page</li>
+          <li>Access, download, or delete your data (including chat history, flashcards, quizzes, quiz scores, and recommendations) at any time from the <Link href="/userdata" className="text-blue-600 dark:text-blue-400 underline">User Data</Link> page or via available API endpoints</li>
           <li>Right to rectify inaccurate data</li>
           <li>Right to restrict or object to processing of your data in certain situations</li>
           <li>Right to data portability (download your data in a machine-readable format)</li>
         </ul>
-        <p className="mb-4 text-gray-700 dark:text-gray-200"/>
         <ul className="list-disc list-inside mb-4 text-gray-700 dark:text-gray-200">
           <li>We do <strong>not</strong> sell your personal information to third parties.</li>
           <li>California users have the right to request access to, or deletion of, their personal data.</li>
