@@ -8,7 +8,7 @@ export default function ApiDocsPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1500); // Adjust delay as needed
+    const timer = setTimeout(() => setIsLoading(false), 50000); // Adjust delay as needed
     return () => clearTimeout(timer);
   }, []);
 
