@@ -23,7 +23,7 @@ export default function PaymentProcessing() {
     if (tier === "full") amount = "15.00";
     const params = new URLSearchParams({
       cmd: "_xclick",
-      business: "sb-2qv2g28809340@business.example.com",
+      business: "khansokan1234@gmail.com",
       item_name: `StudySync Subscription (${tier.charAt(0).toUpperCase() + tier.slice(1)})`,
       amount,
       currency_code: "USD",
