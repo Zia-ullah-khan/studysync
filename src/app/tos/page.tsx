@@ -119,6 +119,11 @@ export default function TermsOfService() {
           </li>
         </ul>
 
+        <h2 className="text-xl font-semibold mt-6 mb-2">16. Payment Processing & Payment Data Security</h2>
+        <p className="mb-4 text-gray-700 dark:text-gray-200">
+          StudySync subscriptions are billed through a secure third-party payment processor. <strong>We do not store or process your full payment card details on our servers.</strong> All payment information is handled in accordance with industry standards, including PCI DSS compliance. By subscribing, you agree to provide accurate and complete payment information and authorize our payment processor to charge your selected payment method for the applicable subscription fees. You are responsible for keeping your payment information up to date. If a payment fails or your subscription cannot be renewed, your access to paid features may be suspended until payment is received.
+        </p>
+
         <div className="mt-8 text-center">
           <Link href="/" className="text-blue-600 dark:text-blue-400 underline">Back to Home</Link>
         </div>

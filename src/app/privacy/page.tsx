@@ -52,6 +52,10 @@ export default function PrivacyPolicy() {
         <p className="mb-4 text-gray-700 dark:text-gray-200">
           We use industry-standard security practices to safeguard your personal data against unauthorized access, disclosure, alteration, or destruction. This includes using <strong>Transport Layer Security (TLS) encryption</strong> for data transmission between your device and our servers, and <strong>Advanced Encryption Standard (AES) encryption</strong> for stored data where appropriate. <strong>We implement strong password policies, including requirements for password complexity. Accounts may also be temporarily locked after multiple failed login attempts to protect against unauthorized access.</strong> We also conduct regular security assessments and may implement measures like multi-factor authentication to enhance account security.
         </p>
+        <h2 className="text-xl font-semibold mt-6 mb-2">Payment Processing & Payment Data Security</h2>
+        <p className="mb-4 text-gray-700 dark:text-gray-200">
+          If you choose to subscribe to StudySync, your payment information (such as credit card details) is processed securely by our third-party payment processor. <strong>We do not store or have access to your full payment card details on our servers.</strong> All payment transactions are encrypted and handled in compliance with the Payment Card Industry Data Security Standard (PCI DSS). Our payment processor is contractually obligated to protect your payment data and use it only for the purpose of processing your subscription payments. If you have questions about payment data security, please contact us at <a href="mailto:khansokan1234@gmail.com" className="text-blue-600 dark:text-blue-400 underline">khansokan1234@gmail.com</a>.
+        </p>
         <h2 className="text-xl font-semibold mt-6 mb-2">Your Rights</h2>
         <p className="mb-2 text-gray-700 dark:text-gray-200">
           Under GDPR and CCPA, you have the following rights regarding your personal data, including chat sessions, flashcards, quizzes, quiz scores, and recommendations:
