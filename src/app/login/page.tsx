@@ -78,8 +78,7 @@ function LoginContent() {
               name: data.name || data.user?.name || email.split('@')[0]
             });
           }
-          console.log('Login successful:', data);
-          //router.push('/');
+          router.push('/');
         } else {
           setErrorMessage(data.message || 'Login failed');
         }
