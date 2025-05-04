@@ -97,7 +97,7 @@ export default function UserDataPage() {
       setLoading(false);
       return;
     }
-    fetch(`https://studysyncapi.onrender.com/userdata/GetAllUserData?id=${userId}`, {
+    fetch(`http://localhost:3001/userdata/GetAllUserData?id=${userId}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     })
       .then(async (res) => {

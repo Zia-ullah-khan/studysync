@@ -5,17 +5,41 @@ import Link from "next/link";
 
 export default function PaymentProcessing() {
   const [tier, setTier] = useState("basic");
-  const [name, setName] = useState("");
-  const [card, setCard] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvc, setCvc] = useState("");
-  const [email, setEmail] = useState("");
+  const [email] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState(false);
 
   const paypalRef = useRef<HTMLDivElement>(null);
   const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+
+  useEffect(() => {
+    const searchParams = typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search)
+      : null;
+    if (searchParams && searchParams.get("success") === "1") {
+      setSubmitted(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (submitted && email && !emailSent) {
+      fetch("/api/send-receipt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          tier,
+          amount:
+            tier === "enhanced"
+              ? "10.00"
+              : tier === "full"
+              ? "15.00"
+              : "5.00",
+        }),
+      }).then(() => setEmailSent(true));
+    }
+  }, [submitted, email, tier, emailSent]);
 
   const handleFastlanePayPal = () => {
     let amount = "5.00";
@@ -28,10 +52,10 @@ export default function PaymentProcessing() {
       amount,
       currency_code: "USD",
       no_shipping: "1",
-      return: typeof window !== "undefined" ? window.location.origin + "/payment?success=1" : "",
+      return: "https://studysync.rfas.software/payment?success=1",
       cancel_return: typeof window !== "undefined" ? window.location.origin + "/payment?cancel=1" : "",
     }).toString();
-    window.open(`https://www.paypal.com/cgi-bin/webscr?${params}`, "_blank");
+    window.open(`https://www.paypal.com/cgi-bin/webscr?${params}`, "_self");
   };
 
   useEffect(() => {
@@ -86,27 +110,21 @@ export default function PaymentProcessing() {
           },
           onApprove: async (_data, actions) => {
             setLoading(true);
-            setError(null);
             try {
               await actions.order.capture();
               setSubmitted(true);
             } catch {
-              setError("PayPal payment failed. Please try again.");
+              console.error("PayPal payment failed. Please try again.");
             }
             setLoading(false);
           },
           onError: () => {
-            setError("PayPal payment failed. Please try again.");
+            console.error("PayPal payment failed. Please try again.");
           }
         }).render(paypalRef.current);
       }
     }
   }, [tier, submitted, loading, paypalClientId]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("Direct credit card payments are not supported. Please use PayPal to complete your transaction.");
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
@@ -127,100 +145,19 @@ export default function PaymentProcessing() {
           </div>
         ) : (
           <>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <label className="block">
-                <span className="font-medium">Subscription Tier</span>
-                <select
-                  className="mt-1 block w-full rounded border-gray-300 dark:bg-gray-700 dark:text-white"
-                  value={tier}
-                  onChange={e => setTier(e.target.value)}
-                  required
-                >
-                  <option value="basic">Basic – $5/month</option>
-                  <option value="enhanced">Enhanced – $10/month</option>
-                  <option value="full">Full – $15/month</option>
-                </select>
-              </label>
-              <label className="block">
-                <span className="font-medium">Name on Card</span>
-                <input
-                  type="text"
-                  className="mt-1 block w-full rounded border-gray-300 dark:bg-gray-700 dark:text-white"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  required
-                />
-              </label>
-              <label className="block">
-                <span className="font-medium">Email</span>
-                <input
-                  type="email"
-                  className="mt-1 block w-full rounded border-gray-300 dark:bg-gray-700 dark:text-white"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                />
-              </label>
-              <label className="block">
-                <span className="font-medium">Card Number</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9\s]{13,19}"
-                  maxLength={19}
-                  className="mt-1 block w-full rounded border-gray-300 dark:bg-gray-700 dark:text-white"
-                  value={card}
-                  onChange={e => setCard(e.target.value)}
-                  required
-                  placeholder="1234 5678 9012 3456"
-                />
-              </label>
-              <div className="flex gap-4">
-                <label className="block flex-1">
-                  <span className="font-medium">Expiry</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="\d{2}/\d{2}"
-                    maxLength={5}
-                    className="mt-1 block w-full rounded border-gray-300 dark:bg-gray-700 dark:text-white"
-                    value={expiry}
-                    onChange={e => setExpiry(e.target.value)}
-                    required
-                    placeholder="MM/YY"
-                  />
-                </label>
-                <label className="block w-24">
-                  <span className="font-medium">CVC</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="\d{3,4}"
-                    maxLength={4}
-                    className="mt-1 block w-full rounded border-gray-300 dark:bg-gray-700 dark:text-white"
-                    value={cvc}
-                    onChange={e => setCvc(e.target.value)}
-                    required
-                    placeholder="CVC"
-                  />
-                </label>
-              </div>
-              {error && (
-                <div className="text-red-600 dark:text-red-400 text-sm">{error}</div>
-              )}
-              <button
-                type="submit"
-                className="w-full py-2 px-4 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 transition"
-                disabled={loading}
+            <label className="block mb-4">
+              <span className="font-medium">Subscription Tier</span>
+              <select
+                className="mt-1 block w-full rounded border-gray-300 dark:bg-gray-700 dark:text-white"
+                value={tier}
+                onChange={e => setTier(e.target.value)}
+                required
               >
-                {loading ? "Processing..." : "Subscribe"}
-              </button>
-            </form>
-            <div className="my-6 flex items-center">
-              <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
-              <span className="mx-4 text-gray-500 dark:text-gray-400 text-sm">or</span>
-              <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
-            </div>
+                <option value="basic">Basic – $5/month</option>
+                <option value="enhanced">Enhanced – $10/month</option>
+                <option value="full">Full – $15/month</option>
+              </select>
+            </label>
             <div ref={paypalRef} />
             <div className="mt-6 text-center">
               <button

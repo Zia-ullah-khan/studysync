@@ -51,12 +51,10 @@ function EduBotContent() {
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [fileId, setFileId] = useState<string | null>(null);
   const [context, setContext] = useState('');
-  const [memorySaved, setMemorySaved] = useState<boolean>(false);
-  const [savedMemory, setSavedMemory] = useState<Record<string, unknown> | null>(null);
-  console.log(memorySaved, savedMemory)
+  const [accessAllowed, setAccessAllowed] = useState(true);
+
   useEffect(() => {
     const token = localStorage.getItem('authToken');
-    console.log(token);
     if (token) {
       setAuthToken(token);
     } else {
@@ -74,7 +72,15 @@ function EduBotContent() {
     const fileIdParam = searchParams.get('fileId');
     if (fileIdParam) {
       setFileId(fileIdParam);
-      console.log("Received fileId:", fileIdParam);
+    }
+    const hasPaid = localStorage.getItem('hasPaid');
+    const subscriptionTier = localStorage.getItem('subscriptionTier');
+    if (!hasPaid || subscriptionTier === 'none') {
+      setErrorMessage('You need a paid subscription to access EduBot.');
+      setAccessAllowed(false);
+      return;
+    } else {
+      setAccessAllowed(true);
     }
   }, [router, searchParams]);
 
@@ -92,7 +98,6 @@ function EduBotContent() {
           },
         });
 
-        console.log('File uploaded successfully:', uploadResponse.data);
         const uploadedFileId = uploadResponse.data.fileId;
         setFileId(uploadedFileId);
 
@@ -104,14 +109,10 @@ function EduBotContent() {
 
         if (fileContentResponse.data && fileContentResponse.data.content) {
           setContext(`uploaded file, ${file.name}, content of uploaded file: ${fileContentResponse.data.content}`);
-          console.log('File content retrieved and set as context:', fileContentResponse.data.content);
         } else {
-          console.warn('File content not found in response:', fileContentResponse.data);
           setErrorMessage('Failed to retrieve file content. Please try again.');
         }
       } catch (error: unknown) {
-        console.error('Error uploading or retrieving file content:', error);
-
         if (error instanceof Error) {
           setErrorMessage(`Failed to upload or retrieve file content. ${error.message}. Please try again.`);
         } else {
@@ -172,9 +173,9 @@ function EduBotContent() {
               </div>
             )}
             
-            {activeTab === 'chat' && <ChatWithAI authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} handleFileUpload={handleFileUpload} context={context} setContext={setContext} setMemorySaved={setMemorySaved} setSavedMemory={setSavedMemory} />} 
-            {activeTab === 'flashcards' && <GenerateFlashcards authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} />}
-            {activeTab === 'quiz' && <GenerateQuiz authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} />}
+            {activeTab === 'chat' && <ChatWithAI accessAllowed={accessAllowed} authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} handleFileUpload={handleFileUpload} context={context} setContext={setContext} />} 
+            {activeTab === 'flashcards' && <GenerateFlashcards accessAllowed={accessAllowed} authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} />}
+            {activeTab === 'quiz' && <GenerateQuiz accessAllowed={accessAllowed} authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} />}
           </div>
         </div>
       </main>
@@ -200,7 +201,8 @@ function EduBotContent() {
   );
 }
 
-function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFileUpload, context, setContext, setMemorySaved, setSavedMemory }: {
+function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, fileId, handleFileUpload, context, setContext }: {
+  accessAllowed: boolean,
   authToken: string | null,
   setIsLoading: (loading: boolean) => void,
   setErrorMessage: (error: string) => void,
@@ -208,8 +210,6 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
   handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void,
   context: string,
   setContext: (ctx: string) => void,
-  setMemorySaved: (saved: boolean) => void,
-  setSavedMemory: (memory: Record<string, unknown> | null) => void
 }) {
   const [prompt, setPrompt] = useState('');
   const [chatHistory, setChatHistory] = useState<{ question: string; answer: string; sources?: string[]; memorySaved?: boolean; savedMemory?: Record<string, unknown> | null }[]>([]);
@@ -269,18 +269,10 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
           memorySaved: data.memorySaved,
           savedMemory: data.savedMemory
         }]);
-        if (data.memorySaved && data.savedMemory) {
-          setMemorySaved(true);
-          setSavedMemory(data.savedMemory);
-        } else {
-          setMemorySaved(false);
-          setSavedMemory(null);
-        }
       } else {
         throw new Error(data.response || 'Failed to get response');
       }
     } catch (error: unknown) {
-      console.error('Chat error:', error);
       if (error instanceof Error) {
         setErrorMessage(error.message || 'Failed to communicate with AI. Please try again.');
       } else {
@@ -302,60 +294,52 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
 
       <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 h-96 overflow-y-auto mb-4 relative">
         <div className="space-y-6">
-          {chatHistory.map((chat: { question: string; answer: string; sources?: string[]; memorySaved?: boolean; savedMemory?: Record<string, unknown> | null }, index: number) => (
-            <div key={index} className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="bg-blue-100 dark:bg-blue-900 rounded-full p-2 text-blue-600 dark:text-blue-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-sm text-gray-500 dark:text-gray-400">You</p>
-                  <p className="mt-1">{chat.question}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 relative">
-                <div className="bg-green-100 dark:bg-green-900 rounded-full p-2 text-green-600 dark:text-green-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <path d="M12 16v-4"></path>
-                    <path d="M12 8h.01"></path>
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-sm text-gray-500 dark:text-gray-400">EduBot</p>
-                  <div className="mt-1 prose dark:prose-invert prose-sm max-w-none">
-                    <p>{chat.answer}</p>
+          <div>
+            {chatHistory.map((chat: { question: string; answer: string; sources?: string[]; memorySaved?: boolean; savedMemory?: Record<string, unknown> | null }, index: number) => (
+              <div key={index} className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="bg-blue-100 dark:bg-blue-900 rounded-full p-2 text-blue-600 dark:text-blue-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm text-gray-500 dark:text-gray-400">You</p>
+                    <p className="mt-1">{chat.question}</p>
                   </div>
                 </div>
-                {chat.memorySaved && chat.savedMemory && (
-                  <span className="absolute top-0 right-0 group cursor-pointer z-10">
-                    <svg className="inline w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11H9v-2h2v2zm0-4H9V7h2v2z"/></svg>
-                    <div className="absolute right-0 mt-2 w-64 z-20 hidden group-hover:block bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 text-xs text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
-                      {Object.entries(chat.savedMemory).map(([k, v]) => (
-                        <div key={k}><span className="font-semibold">{k}:</span> {String(v)}</div>
-                      ))}
+
+                <div className="flex items-start gap-3 relative">
+                  <div className="bg-green-100 dark:bg-green-900 rounded-full p-2 text-green-600 dark:text-green-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M12 16v-4"></path>
+                      <path d="M12 8h.01"></path>
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm text-gray-500 dark:text-gray-400">EduBot</p>
+                    <div className="mt-1 prose dark:prose-invert prose-sm max-w-none">
+                      <p>{chat.answer}</p>
                     </div>
-                  </span>
-                )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
-          {chatHistory.length === 0 && (
-            <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 dark:text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M12 16v-4"></path>
-                <path d="M12 8h.01"></path>
-              </svg>
-              <p>Start a conversation with EduBot by asking a question below.</p>
-              <p className="text-sm mt-2">Try: &quot;Explain the theory of relativity&quot; or &quot;How does photosynthesis work?&quot;</p>
-            </div>
-          )}
-          <div ref={chatEndRef} />
+            ))}
+            {chatHistory.length === 0 && (
+              <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 dark:text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M12 16v-4"></path>
+                  <path d="M12 8h.01"></path>
+                </svg>
+                <p>Start a conversation with EduBot by asking a question below.</p>
+                <p className="text-sm mt-2">Try: &quot;Explain the theory of relativity&quot; or &quot;How does photosynthesis work?&quot;</p>
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
         </div>
       </div>
 
@@ -379,17 +363,18 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
             placeholder="Ask a question..."
             className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
             required
+            disabled={!accessAllowed}
           />
           <button
             type="submit"
-            disabled={!prompt.trim()}
+            disabled={!prompt.trim() || !accessAllowed}
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
           >
             Send
           </button>
           <label
             htmlFor="file-upload"
-            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg cursor-pointer transition-colors"
+            className={`bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg cursor-pointer transition-colors ${!accessAllowed ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             Upload Files
           </label>
@@ -399,6 +384,7 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
             accept=".pdf,.doc,.docx"
             onChange={handleFileUpload}
             className="hidden"
+            disabled={!accessAllowed}
           />
         </div>
       </form>
@@ -406,7 +392,7 @@ function ChatWithAI({ authToken, setIsLoading, setErrorMessage, fileId, handleFi
   );
 }
 
-function GenerateFlashcards({ authToken, setIsLoading, setErrorMessage, fileId }: { authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void, fileId: string | null }) {
+function GenerateFlashcards({ accessAllowed, authToken, setIsLoading, setErrorMessage, fileId }: { accessAllowed: boolean, authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void, fileId: string | null }) {
   const [topic, setTopic] = useState('');
   const [count, setCount] = useState(5);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -416,7 +402,6 @@ function GenerateFlashcards({ authToken, setIsLoading, setErrorMessage, fileId }
   useEffect(() => {
     if (fileId) {
       setTopic(`Topic related to file ID: ${fileId}`);
-      console.log("GenerateFlashcards received fileId:", fileId);
     }
   }, [fileId]);
 
@@ -459,7 +444,6 @@ function GenerateFlashcards({ authToken, setIsLoading, setErrorMessage, fileId }
         throw new Error('Failed to generate flashcards');
       }
     } catch (error) {
-      console.error('Flashcard generation error:', error);
       if (error instanceof Error) {
         setErrorMessage(error.message || 'Failed to generate flashcards. Please try again.');
       } else {
@@ -508,6 +492,7 @@ function GenerateFlashcards({ authToken, setIsLoading, setErrorMessage, fileId }
             placeholder="E.g., Cell Biology"
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
             required
+            disabled={!accessAllowed}
           />
         </div>
         
@@ -521,12 +506,14 @@ function GenerateFlashcards({ authToken, setIsLoading, setErrorMessage, fileId }
             max={20}
             onChange={(e) => setCount(parseInt(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
+            disabled={!accessAllowed}
           />
         </div>
         
         <button
           type="submit"
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+          disabled={!accessAllowed}
         >
           Generate Flashcards
         </button>
@@ -588,7 +575,7 @@ function GenerateFlashcards({ authToken, setIsLoading, setErrorMessage, fileId }
   );
 }
 
-function GenerateQuiz({ authToken, setIsLoading, setErrorMessage, fileId }: { authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void, fileId: string | null }) {
+function GenerateQuiz({ accessAllowed, authToken, setIsLoading, setErrorMessage, fileId }: { accessAllowed: boolean, authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void, fileId: string | null }) {
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [questionCount, setQuestionCount] = useState(5);
@@ -599,7 +586,6 @@ function GenerateQuiz({ authToken, setIsLoading, setErrorMessage, fileId }: { au
   useEffect(() => {
     if (fileId) {
       setTopic(`Topic related to file ID: ${fileId}`);
-      console.log("GenerateQuiz received fileId:", fileId);
     }
   }, [fileId]);
 
@@ -642,7 +628,6 @@ function GenerateQuiz({ authToken, setIsLoading, setErrorMessage, fileId }: { au
         throw new Error('Failed to generate quiz');
       }
     } catch (error) {
-      console.error('Quiz generation error:', error);
       if (error instanceof Error) {
         setErrorMessage(error.message || 'Failed to generate quiz. Please try again.');
       } else {
@@ -717,6 +702,7 @@ function GenerateQuiz({ authToken, setIsLoading, setErrorMessage, fileId }: { au
               placeholder="E.g., World War II"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
               required
+              disabled={!accessAllowed}
             />
           </div>
           
@@ -727,6 +713,7 @@ function GenerateQuiz({ authToken, setIsLoading, setErrorMessage, fileId }: { au
               value={difficulty}
               onChange={(e) => setDifficulty(e.target.value as 'easy' | 'medium' | 'hard')}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700"
+              disabled={!accessAllowed}
             >
               <option value="easy">Easy</option>
               <option value="medium">Medium</option>
@@ -744,12 +731,14 @@ function GenerateQuiz({ authToken, setIsLoading, setErrorMessage, fileId }: { au
               max={10}
               onChange={(e) => setQuestionCount(parseInt(e.target.value))}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
+              disabled={!accessAllowed}
             />
           </div>
           
           <button
             type="submit"
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+            disabled={!accessAllowed}
           >
             Generate Quiz
           </button>

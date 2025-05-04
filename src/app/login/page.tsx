@@ -62,15 +62,24 @@ function LoginContent() {
         const data = await response.json();
         
         if (data.success) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('hasPaid', String(data.user?.hasPaid ?? data.hasPaid));
+            localStorage.setItem('subscriptionTier', data.user?.subscriptionTier || data.subscriptionTier || '');
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('loginEmail', email);
+            if (data.token) {
+              localStorage.setItem('authToken', data.token);
+            }
+          }
           if (data.token) {
             saveAuthData(data.token, {
               email,
-              userId: data.userId || undefined,
-              name: data.name || email.split('@')[0]
+              userId: data.userId || data.user?._id || undefined,
+              name: data.name || data.user?.name || email.split('@')[0]
             });
           }
-          
-          router.push('/');
+          console.log('Login successful:', data);
+          //router.push('/');
         } else {
           setErrorMessage(data.message || 'Login failed');
         }
