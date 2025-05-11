@@ -22,31 +22,31 @@ export default function TermsOfService() {
         </div>
         {isPirate ? (
           <div>
-            <h1 className="text-3xl font-bold mb-6 text-center">Terms o' Service</h1>
+            <h1 className="text-3xl font-bold mb-6 text-center">Terms o&apos; Service</h1>
             <p className="mb-4 text-gray-700 dark:text-gray-200">
-              Ahoy, matey! By usin' StudySync, ye be agreein' to these here terms. Read 'em well, or walk the plank!
+              Ahoy, matey! By usin&apos; StudySync, ye be agreein&apos; to these here terms. Read &apos;em well, or walk the plank!
             </p>
-            <h2 className="text-xl font-semibold mt-6 mb-2">1. Acceptance o' Terms</h2>
+            <h2 className="text-xl font-semibold mt-6 mb-2">1. Acceptance o&apos; Terms</h2>
             <p className="mb-4 text-gray-700 dark:text-gray-200">
-              By boardin' StudySync, ye swear on yer honor to abide by these Terms o' Service and our{" "}
+              By boardin&apos; StudySync, ye swear on yer honor to abide by these Terms o&apos; Service and our{" "}
               <Link href="/privacy" className="text-blue-600 dark:text-blue-400 underline">
                 Privacy Policy
               </Link>.
             </p>
             <h2 className="text-xl font-semibold mt-6 mb-2">2. User Accounts</h2>
             <ul className="list-disc list-inside mb-4 text-gray-700 dark:text-gray-200">
-              <li>Ye must provide true and honest details when creatin' yer account, or face the wrath o' Davy Jones.</li>
+              <li>Ye must provide true and honest details when creatin&apos; yer account, or face the wrath o&apos; Davy Jones.</li>
               <li>Guard yer account credentials like treasure, fer they be yer responsibility.</li>
-              <li>All actions under yer account be on yer head, includin' yer chat logs, flashcards, and quiz answers.</li>
+              <li>All actions under yer account be on yer head, includin&apos; yer chat logs, flashcards, and quiz answers.</li>
             </ul>
             <h2 className="text-xl font-semibold mt-6 mb-2">3. Acceptable Use</h2>
             <ul className="list-disc list-inside mb-4 text-gray-700 dark:text-gray-200">
-              <li>Do not use StudySync fer any scallywaggin' or unlawful deeds.</li>
-              <li>Do not plunder another user's data without permission, lest ye be cursed.</li>
-              <li>Do not upload or share stolen booty, includin' copyrighted materials or lecture notes.</li>
+              <li>Do not use StudySync fer any scallywaggin&apos; or unlawful deeds.</li>
+              <li>Do not plunder another user&apos;s data without permission, lest ye be cursed.</li>
+              <li>Do not upload or share stolen booty, includin&apos; copyrighted materials or lecture notes.</li>
               <li>Do not use StudySync to cheat on yer exams or assignments, ye landlubber!</li>
-              <li>Do not share content that be offensive, illegal, or infringin' on intellectual property rights.</li>
-              <li>Do not attempt to reverse-engineer or sabotage the platform, or ye'll be keelhauled.</li>
+              <li>Do not share content that be offensive, illegal, or infringin&apos; on intellectual property rights.</li>
+              <li>Do not attempt to reverse-engineer or sabotage the platform, or ye&apos;ll be keelhauled.</li>
             </ul>
           </div>
         ) : (
