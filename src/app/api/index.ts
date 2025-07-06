@@ -108,7 +108,6 @@ export async function generateQuiz(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-// SmartNotes API endpoints
 
 export async function uploadAudio(req: NextApiRequest, res: NextApiResponse) {
   console.warn('uploadAudio proxy called - direct frontend upload recommended');
@@ -181,7 +180,6 @@ export async function summarizeTranscript(req: NextApiRequest, res: NextApiRespo
   }
 }
 
-// LearnSphere API endpoints
 export async function getUserDashboard(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { userId } = req.query;
@@ -242,4 +240,3 @@ export async function getRecommendations(req: NextApiRequest, res: NextApiRespon
   }
 }
 
-// Add other API proxy functions as needed, following the pattern above

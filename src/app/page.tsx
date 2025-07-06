@@ -24,7 +24,7 @@ export default function Home() {
       </nav>
 
       <div className="bg-blue-100 dark:bg-blue-900/50 py-2 px-6 text-center text-sm text-blue-800 dark:text-blue-300">
-        <span>Learn about our commitment to accessibility. </span>
+        <span>Our motto &quot;Help, not Answer&quot;. <br/>Learn about our commitment to accessibility. </span>
         <Link href="/free-software" className="font-medium underline hover:text-blue-600 dark:hover:text-blue-200">
           Read Our Philosophy
         </Link>
