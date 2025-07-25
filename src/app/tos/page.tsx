@@ -6,7 +6,7 @@ export default function TermsOfService() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
       <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mt-12">
         <div className="mb-4 text-right text-xs text-gray-500 dark:text-gray-400">
-          <span>Last updated: June 8, 2024 &nbsp;|&nbsp; Version 1.1<br />Effective date: June 8, 2024</span>
+          <span>Last updated: July 22, 2024 &nbsp;|&nbsp; Version 1.2<br />Effective date: July 22, 2024</span>
         </div>
         <h1 className="text-3xl font-bold mb-6 text-center">Terms of Service</h1>
         <div className="mb-4 text-sm text-gray-700 dark:text-gray-300">
@@ -20,8 +20,10 @@ export default function TermsOfService() {
         </div>
         <h2 className="text-xl font-semibold mt-6 mb-2">Definitions</h2>
         <ul className="list-disc list-inside mb-4 text-gray-700 dark:text-gray-200">
-          <li><strong>Services:</strong> The StudySync website, app, API, and all related features.</li>
-          <li><strong>User Content:</strong> Any content you upload, submit, or create using the Services (e.g., files, chat logs, flashcards, quizzes).</li>
+          <li><strong>Services:</strong> The StudySync website, app, API, and all related features including audio recording, transcription, and AI-powered analysis tools.</li>
+          <li><strong>User Content:</strong> Any content you upload, submit, or create using the Services (e.g., files, audio recordings, chat logs, flashcards, quizzes, transcriptions).</li>
+          <li><strong>Audio Content:</strong> Any audio files, recordings, or voice data uploaded, recorded, or processed through our Services, including live recordings and real-time audio streams.</li>
+          <li><strong>Transcription Data:</strong> Text generated from audio content through AI-powered transcription services, including interim transcripts, final transcripts, summaries, and related metadata.</li>
           <li><strong>StudySync Content:</strong> All content provided by StudySync, including AI-generated content, trademarks, and software.</li>
           <li><strong>We/Us/Our:</strong> StudySync, operated by Zia Ullah Khan.</li>
           <li><strong>You/User:</strong> Anyone who accesses or uses the Services.</li>
@@ -42,7 +44,7 @@ export default function TermsOfService() {
         </ul>
         <h2 className="text-xl font-semibold mt-6 mb-2">4. License to User Content</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
-          By submitting User Content, you grant StudySync a worldwide, royalty-free, sublicensable, and transferable license to use, host, store, reproduce, modify, display, and distribute your User Content as necessary to provide and improve the Services. This license ends when you delete your User Content or account, except as required for legal compliance, dispute resolution, or backup purposes.
+          By submitting User Content (including audio recordings, transcriptions, and related data), you grant StudySync a worldwide, royalty-free, sublicensable, and transferable license to use, host, store, reproduce, modify, display, and distribute your User Content as necessary to provide and improve the Services. This includes processing audio through third-party transcription services and generating AI-powered summaries and insights. This license ends when you delete your User Content or account, except as required for legal compliance, dispute resolution, backup purposes, or ongoing service operations.
         </p>
         <h2 className="text-xl font-semibold mt-6 mb-2">5. Acceptable Use</h2>
         <ul className="list-disc list-inside mb-4 text-gray-700 dark:text-gray-200">
@@ -52,6 +54,9 @@ export default function TermsOfService() {
           <li>Do not use the Services or AI features to facilitate academic dishonesty.</li>
           <li>Do not upload or share content that is offensive, illegal, or infringes on intellectual property rights.</li>
           <li>Do not attempt to reverse engineer, disrupt, or misuse the Services or AI systems.</li>
+          <li>Do not record audio without proper consent from all parties in jurisdictions where required.</li>
+          <li>Do not record or transcribe content that violates privacy laws or contains confidential information without authorization.</li>
+          <li>Do not use audio recording features to capture conversations, lectures, or meetings without appropriate permissions.</li>
         </ul>
         <h2 className="text-xl font-semibold mt-6 mb-2">6. Intellectual Property</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
@@ -61,6 +66,57 @@ export default function TermsOfService() {
         <p className="mb-4 text-gray-700 dark:text-gray-200">
           The Services may contain links to third-party websites or resources. StudySync is not responsible for the content, privacy, or practices of any third-party sites or services.
         </p>
+        <h2 className="text-xl font-semibold mt-6 mb-2">7A. Audio Recording, Storage, and Transcription Services</h2>
+        <div className="mb-4 text-gray-700 dark:text-gray-200">
+          <h3 className="text-lg font-medium mb-2">Recording Consent and Legal Compliance</h3>
+          <ul className="list-disc list-inside mb-3 ml-4">
+            <li>You are solely responsible for obtaining all necessary consents and permissions before recording any audio content, including but not limited to lectures, meetings, conversations, or any third-party content.</li>
+            <li>You must comply with all applicable federal, state, and local laws regarding audio recording, including one-party and two-party consent laws in your jurisdiction.</li>
+            <li>StudySync does not provide legal advice regarding recording consent requirements. Consult with legal counsel if you are unsure about applicable laws.</li>
+            <li>You represent and warrant that all audio content you record, upload, or transcribe through our Services is lawfully obtained and does not violate any privacy rights, confidentiality agreements, or applicable laws.</li>
+          </ul>
+          
+          <h3 className="text-lg font-medium mb-2">Audio Data Processing and Storage</h3>
+          <ul className="list-disc list-inside mb-3 ml-4">
+            <li>Audio files and recordings are temporarily stored on our servers for processing and transcription purposes.</li>
+            <li>We use third-party AI services (including AssemblyAI) to process and transcribe your audio content. By using our audio services, you consent to this processing.</li>
+            <li>Audio files may be retained for up to 30 days for quality assurance and service improvement, after which they are automatically deleted unless otherwise specified.</li>
+            <li>Transcriptions and summaries generated from your audio may be stored longer as part of your account data and learning history.</li>
+            <li>We implement industry-standard security measures to protect your audio data during transmission and storage.</li>
+          </ul>
+          
+          <h3 className="text-lg font-medium mb-2">Real-Time Recording and Live Transcription</h3>
+          <ul className="list-disc list-inside mb-3 ml-4">
+            <li>Live transcription features process audio in real-time through secure WebSocket connections.</li>
+            <li>Audio data transmitted during live sessions is processed immediately and not permanently stored unless you explicitly save the session.</li>
+            <li>You acknowledge that real-time transcription accuracy may vary and should not be relied upon for critical or legal purposes without verification.</li>
+            <li>Live recording sessions may be interrupted due to network connectivity, technical issues, or service maintenance.</li>
+          </ul>
+          
+          <h3 className="text-lg font-medium mb-2">Content Restrictions</h3>
+          <ul className="list-disc list-inside mb-3 ml-4">
+            <li>Do not record or upload audio containing protected health information (PHI), financial information, or other sensitive personal data unless you have explicit authorization.</li>
+            <li>Do not record copyrighted content, including but not limited to music, audiobooks, movies, or other protected media.</li>
+            <li>Do not use our services to record content for commercial redistribution without proper licensing.</li>
+            <li>We reserve the right to review, moderate, or remove audio content that violates these terms or applicable laws.</li>
+          </ul>
+          
+          <h3 className="text-lg font-medium mb-2">Accuracy and Limitations</h3>
+          <ul className="list-disc list-inside mb-3 ml-4">
+            <li>Transcription services are provided &quot;as is&quot; and accuracy is not guaranteed. AI-generated transcriptions may contain errors, omissions, or misinterpretations.</li>
+            <li>You should review and verify all transcriptions for accuracy before relying on them for academic, professional, or legal purposes.</li>
+            <li>StudySync is not liable for any consequences arising from inaccurate transcriptions or missed audio content.</li>
+            <li>Transcription quality may be affected by audio quality, background noise, accents, technical terminology, or other factors.</li>
+          </ul>
+          
+          <h3 className="text-lg font-medium mb-2">User Responsibilities</h3>
+          <ul className="list-disc list-inside mb-3 ml-4">
+            <li>You are responsible for backing up important audio files and transcriptions before deletion or account termination.</li>
+            <li>You must not attempt to identify individuals from voice patterns or use audio features for surveillance purposes.</li>
+            <li>You agree to use audio features only for legitimate educational, professional, or personal purposes.</li>
+            <li>You must promptly report any unauthorized access to your recordings or suspected security breaches.</li>
+          </ul>
+        </div>
         <h2 className="text-xl font-semibold mt-6 mb-2">8. Termination</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
           We may suspend or terminate your account for violation of these Terms or harmful behavior. In most cases, you will receive notice and an opportunity to address the issue, except for severe or repeated violations. You may appeal by contacting support. The decision of StudySync is final.
@@ -71,7 +127,7 @@ export default function TermsOfService() {
         </p>
         <h2 className="text-xl font-semibold mt-6 mb-2">10. Disclaimer</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
-          The Services are provided &quot;as is&quot; without warranties of any kind. We do not guarantee the accuracy or reliability of any content or AI-generated responses.
+          The Services are provided &quot;as is&quot; without warranties of any kind. We do not guarantee the accuracy or reliability of any content, AI-generated responses, audio transcriptions, or real-time transcription services. Audio recording and transcription features may be affected by technical limitations, network connectivity, audio quality, background noise, or other factors beyond our control. You acknowledge that transcription accuracy may vary and should not be relied upon for critical, legal, or medical purposes without independent verification.
         </p>
         <h2 className="text-xl font-semibold mt-6 mb-2">11. Limitation of Liability</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
@@ -115,7 +171,7 @@ export default function TermsOfService() {
         </p>
         <h2 className="text-xl font-semibold mt-6 mb-2">21. User Data and Privacy Rights</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
-          StudySync collects, uses, and protects your personal data as described in our <Link href="/privacy" className="text-blue-600 dark:text-blue-400 underline">Privacy Policy</Link>. You have the right to access, correct, download, or delete your data, and to object to or restrict certain processing. Requests can be made through your account or by contacting us. We do not sell your personal information. For more details about your rights and how to exercise them, please review our Privacy Policy.
+          StudySync collects, uses, and protects your personal data (including audio recordings and transcription data) as described in our <Link href="/privacy" className="text-blue-600 dark:text-blue-400 underline">Privacy Policy</Link>. You have the right to access, correct, download, or delete your data, and to object to or restrict certain processing. This includes the right to delete audio recordings and associated transcriptions. Requests can be made through your account or by contacting us. We do not sell your personal information or audio content to third parties. Audio data may be processed by third-party AI services solely for transcription purposes as outlined in our Privacy Policy. For more details about your rights and how to exercise them, please review our Privacy Policy.
         </p>
         <h2 className="text-xl font-semibold mt-6 mb-2">22. API Terms of Service</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">

@@ -562,7 +562,7 @@ export default function SmartNotes() {
               case 'final_transcript':
                 console.log('Final transcript received:', data.text);
                 if (data.text) {
-                  setLiveTranscript(data.text);
+                  setLiveTranscript(prev => prev + (prev ? ' ' : '') + data.text);
                 }
                 break;
                 
@@ -615,7 +615,6 @@ export default function SmartNotes() {
     if (mediaRecorder && 'isRecording' in mediaRecorder && mediaRecorder.isRecording) {
       console.log('⏹️ Stopping PCM audio capture...');
       
-      // Send stop recording message to WebSocket
       if (websocket && websocket.readyState === WebSocket.OPEN) {
         websocket.send(JSON.stringify({
           type: 'stop',
@@ -623,11 +622,9 @@ export default function SmartNotes() {
         }));
       }
       
-      // Stop PCM recording
       const audioRecorder = mediaRecorder as AudioRecorder;
       audioRecorder.isRecording = false;
       
-      // Cleanup audio nodes
       if (audioRecorder.source) {
         audioRecorder.source.disconnect();
       }
@@ -643,7 +640,6 @@ export default function SmartNotes() {
     }
   };
 
-  // Cleanup WebSocket function
   const cleanupWebSocket = () => {
     if (websocket) {
       console.log('🧹 Cleaning up WebSocket connection...');
