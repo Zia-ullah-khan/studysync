@@ -6,7 +6,7 @@ export default function Subprocessors() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
       <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mt-12">
         <div className="mb-4 text-right text-xs text-gray-500 dark:text-gray-400">
-          <span>Last updated: July 22, 2025 &nbsp;|&nbsp; Version 1.0<br />Effective date: July 22, 2025</span>
+          <span>Last updated: July 28, 2025 &nbsp;|&nbsp; Version 1.1<br />Effective date: July 28, 2025</span>
         </div>
         <h1 className="text-3xl font-bold mb-6 text-center">Subprocessors</h1>
         <div className="mb-6 p-3 rounded bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200" aria-label="Summary">
@@ -202,6 +202,28 @@ export default function Subprocessors() {
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 <strong>Website:</strong> <a href="https://nodemailer.com" className="text-blue-600 dark:text-blue-400 underline" target="_blank" rel="noopener noreferrer">nodemailer.com</a>
+              </p>
+            </div>
+          </div>
+
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-3 text-teal-600 dark:text-teal-400">Canvas</h3>
+            <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2">
+                <h4 className="font-medium">Canvas LMS</h4>
+                <span className="text-sm text-gray-500 dark:text-gray-400">Educational Platform API</span>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                <strong>Purpose:</strong> Retrieve courses, assignments, grades, and assignment details to power features including Agent Mode.
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                <strong>Data Processed:</strong> Course listings, assignment metadata, due dates, grades, user identifiers.
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                <strong>Location:</strong> United States (Canvas cloud infrastructure)
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                <strong>Website:</strong> <a href="https://canvas.instructure.com" className="text-blue-600 dark:text-blue-400 underline" target="_blank" rel="noopener noreferrer">canvas.instructure.com</a>
               </p>
             </div>
           </div>

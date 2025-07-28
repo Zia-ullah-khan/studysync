@@ -6,7 +6,7 @@ export default function TermsOfService() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
       <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mt-12">
         <div className="mb-4 text-right text-xs text-gray-500 dark:text-gray-400">
-          <span>Last updated: July 22, 2024 &nbsp;|&nbsp; Version 1.2<br />Effective date: July 22, 2024</span>
+          <span>Last updated: July 28, 2025 &nbsp;|&nbsp; Version 1.3<br />Effective date: July 28, 2025</span>
         </div>
         <h1 className="text-3xl font-bold mb-6 text-center">Terms of Service</h1>
         <div className="mb-4 text-sm text-gray-700 dark:text-gray-300">
@@ -27,6 +27,8 @@ export default function TermsOfService() {
           <li><strong>StudySync Content:</strong> All content provided by StudySync, including AI-generated content, trademarks, and software.</li>
           <li><strong>We/Us/Our:</strong> StudySync, operated by Zia Ullah Khan.</li>
           <li><strong>You/User:</strong> Anyone who accesses or uses the Services.</li>
+          <li><strong>AI Features:</strong> Automated tools and services, including Agent Mode commands, that use artificial intelligence to generate responses, recommendations, transcriptions, or analyze data.</li>
+          <li><strong>Agent Mode:</strong> A command-driven AI interface for managing lectures, courses, assignments, and grades by retrieving data from connected services.</li>
         </ul>
         <h2 className="text-xl font-semibold mt-6 mb-2">1. Eligibility</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
@@ -57,6 +59,19 @@ export default function TermsOfService() {
           <li>Do not record audio without proper consent from all parties in jurisdictions where required.</li>
           <li>Do not record or transcribe content that violates privacy laws or contains confidential information without authorization.</li>
           <li>Do not use audio recording features to capture conversations, lectures, or meetings without appropriate permissions.</li>
+          <li>Use Agent Mode responsibly; commands should only be run on data you own and with valid OAuth access. Do not attempt to retrieve or manipulate data belonging to others.</li>
+        </ul>
+        <h2 className="text-xl font-semibold mt-6 mb-2">Agent Mode Usage</h2>
+        <p className="mb-4 text-gray-700 dark:text-gray-200">
+          Agent Mode allows you to fetch and manage your academic data via secure OAuth connections to third-party platforms (e.g., Canvas). By using Agent Mode, you authorize StudySync to store and use your OAuth tokens to perform the requested actions on your behalf.
+        </p>
+        <ul className="list-disc list-inside mb-4 text-gray-700 dark:text-gray-200">
+          <li><strong>Token Management:</strong> You can revoke OAuth permissions at any time through your account settings or the third-party platform.</li>
+          <li><strong>Command Logs:</strong> StudySync logs Agent Mode commands and responses for debugging and service improvement; logs can be deleted upon request.</li>
+          <li><strong>Data Accuracy:</strong> StudySync is not liable for discrepancies or errors in data fetched from third-party services; verify critical information independently.</li>
+          <li><strong>Security:</strong> OAuth tokens are encrypted and stored securely; we implement industry-standard security measures for data protection.</li>
+          <li><strong>Rate Limiting:</strong> Agent Mode commands may be subject to rate limiting to prevent abuse and ensure service availability.</li>
+          <li><strong>Service Availability:</strong> Agent Mode functionality depends on third-party API availability; we are not liable for third-party service outages.</li>
         </ul>
         <h2 className="text-xl font-semibold mt-6 mb-2">6. Intellectual Property</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
@@ -127,12 +142,15 @@ export default function TermsOfService() {
         </p>
         <h2 className="text-xl font-semibold mt-6 mb-2">10. Disclaimer</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
-          The Services are provided &quot;as is&quot; without warranties of any kind. We do not guarantee the accuracy or reliability of any content, AI-generated responses, audio transcriptions, or real-time transcription services. Audio recording and transcription features may be affected by technical limitations, network connectivity, audio quality, background noise, or other factors beyond our control. You acknowledge that transcription accuracy may vary and should not be relied upon for critical, legal, or medical purposes without independent verification.
+          The Services are provided &quot;as is&quot; without warranties of any kind. We do not guarantee the accuracy or reliability of any content, AI-generated responses, audio transcriptions, or real-time transcription services. Audio recording and transcription features may be affected by technical limitations, network connectivity, audio quality, background noise, or other factors beyond our control. You acknowledge that transcription accuracy may vary and should not be relied upon for critical, legal, or medical purposes without independent verification. Agent Mode functionality depends on third-party API availability and accuracy; we do not guarantee the completeness or accuracy of data retrieved from external platforms.
         </p>
         <h2 className="text-xl font-semibold mt-6 mb-2">11. Limitation of Liability</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
           StudySync and its creators are not liable for any direct, indirect, incidental, special, consequential, or exemplary damages arising from your use of the Services, including loss of data, profits, or academic consequences.
         </p>
+          <p className="mb-4 text-gray-700 dark:text-gray-200">
+            With respect to Agent Mode, StudySync&apos;s liability is limited to assisting you in revoking access and correcting tokens; StudySync is not responsible for third-party platform outages or incorrect API responses.
+          </p>
         <h2 className="text-xl font-semibold mt-6 mb-2">12. Indemnification</h2>
         <p className="mb-4 text-gray-700 dark:text-gray-200">
           You agree to indemnify and hold harmless StudySync and its affiliates from any claims, damages, or expenses arising from your use of the Services, your User Content, or your violation of these Terms.

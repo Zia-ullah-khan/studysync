@@ -68,7 +68,7 @@ export default function PrivacyPolicy() {
         ) : (
           <div>
             <div className="mb-4 text-right text-xs text-gray-500 dark:text-gray-400">
-              <span>Last updated: July 22, 2025 &nbsp;|&nbsp; Version 1.2</span>
+              <span>Last updated: July 28, 2025 &nbsp;|&nbsp; Version 1.3</span>
             </div>
             <div className="mb-6 p-3 rounded bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200">
               <strong>Summary for Everyone:</strong> We collect only what we need to run StudySync (including voice recordings for transcription), keep your data safe, and let you control it. Audio files are automatically deleted after 30 days, but transcriptions are kept until you delete them. You can always see, download, or delete your data. We don&apos;t sell your info. If you have questions, email us. This page is screen-reader friendly.
@@ -81,7 +81,8 @@ export default function PrivacyPolicy() {
               <li><strong>Transcription Data:</strong> Text generated from audio content, including interim transcripts, final transcripts, summaries, and AI-generated insights.</li>
               <li><strong>Processing:</strong> Any operation performed on personal data, such as collection, storage, use, transcription, or deletion.</li>
               <li><strong>Third Party:</strong> Any organization or person other than StudySync and the user.</li>
-              <li><strong>AI Features:</strong> Automated tools and services that use artificial intelligence to generate responses, recommendations, transcriptions, or analyze data.</li>
+              <li><strong>AI Features:</strong> Automated tools and services, including Agent Mode commands, that use artificial intelligence to generate responses, recommendations, transcriptions, or analyze data.</li>
+              <li><strong>Agent Mode:</strong> A command-driven AI interface for managing lectures, courses, assignments, and grades by retrieving data from connected services.</li>
             </ul>
             <h2 className="text-xl font-semibold mt-6 mb-2">Who We Are</h2>
             <p className="mb-4 text-gray-700 dark:text-gray-200">
@@ -132,13 +133,25 @@ export default function PrivacyPolicy() {
                 <li><strong>Backup Data:</strong> Audio data in backups is retained for up to 30 days for disaster recovery purposes</li>
               </ul>
               
-              <h3 className="text-lg font-medium mb-2">Your Rights Regarding Audio Data</h3>
-              <ul className="list-disc list-inside mb-3 ml-4">
-                <li><strong>Access:</strong> You can access all your audio transcriptions and metadata through your account dashboard</li>
-                <li><strong>Download:</strong> You can download your transcription data in machine-readable formats</li>
-                <li><strong>Deletion:</strong> You can delete individual audio files, transcriptions, or all audio-related data at any time</li>
-                <li><strong>Correction:</strong> You can edit and correct transcription text to improve accuracy</li>
-                <li><strong>Opt-Out:</strong> You can choose not to use audio features while still accessing other StudySync services</li>
+              <h2 className="text-xl font-semibold mt-6 mb-2">Agent Mode Data Usage and Privacy</h2>
+              <p className="mb-4 text-gray-700 dark:text-gray-300">
+                When you use Agent Mode, we access data from third-party educational platforms (e.g., Canvas) on your behalf. Your OAuth tokens are encrypted in transit and at rest, and used solely to retrieve your course, assignment, and grade information.
+              </p>
+              <ul className="list-disc list-inside mb-4 text-gray-700 dark:text-gray-200">
+                <li><strong>OAuth Tokens:</strong> Stored securely and used only to fulfill your data retrieval requests.</li>
+                <li><strong>Agent Mode Logs:</strong> Commands and responses are logged for service improvement; you may request deletion of these logs at any time.</li>
+                <li><strong>Data Caching:</strong> Retrieved academic data is cached for up to 7 days to optimize performance, then purged automatically.</li>
+              </ul>
+              
+              <h2 className="text-xl font-semibold mt-6 mb-2">Your Rights Regarding Agent Mode Data</h2>
+              <p className="mb-4 text-gray-700 dark:text-gray-300">
+                You have the right to access, correct, or delete any data retrieved via Agent Mode, including OAuth tokens, command logs, and cached academic data. To exercise these rights, visit your account settings or contact our Data Protection Officer.
+              </p>
+              <ul className="list-disc list-inside mb-4 text-gray-700 dark:text-gray-200">
+                <li><strong>Access:</strong> Request a copy of your Agent Mode tokens, logs, and cached data.</li>
+                <li><strong>Deletion:</strong> Revoke Agent Mode access at any time to delete stored OAuth tokens, logs, and cached data.</li>
+                <li><strong>Correction:</strong> Request correction of any inaccurate data retrieved by Agent Mode.</li>
+                <li><strong>Opt-Out:</strong> Disable Agent Mode in your account to stop any data retrieval and storage.</li>
               </ul>
             </div>
             <h2 className="text-xl font-semibold mt-6 mb-2">CCPA/CPRA Data Disclosure Table</h2>
@@ -203,6 +216,20 @@ export default function PrivacyPolicy() {
                     <td className="p-2 border">None</td>
                     <td className="p-2 border">Until user deletes or account deletion</td>
                   </tr>
+                  <tr>
+                    <td className="p-2 border">OAuth Tokens & Agent Mode Data</td>
+                    <td className="p-2 border">User, third-party platforms</td>
+                    <td className="p-2 border">Agent Mode functionality, academic data retrieval</td>
+                    <td className="p-2 border">Canvas LMS, educational platforms</td>
+                    <td className="p-2 border">Until revoked (tokens), 7 days (cached data), until deletion (logs)</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 border">Academic Data (courses, assignments, grades)</td>
+                    <td className="p-2 border">Third-party platforms via Agent Mode</td>
+                    <td className="p-2 border">Study management, assignment tracking</td>
+                    <td className="p-2 border">None (unless user shares)</td>
+                    <td className="p-2 border">7 days (cached), until user deletes (saved data)</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -215,6 +242,10 @@ export default function PrivacyPolicy() {
               <li>Uploaded files, chat logs, flashcards, quizzes: Deleted when you delete them or your account.</li>
               <li>Analytics data: Retained for up to 12 months.</li>
               <li>Payment data: Not stored by StudySync; see payment processor policy.</li>
+              <li>OAuth tokens: Retained until revoked by user or account deletion.</li>
+              <li>Agent Mode logs: Retained until user requests deletion or account closure.</li>
+              <li>Cached academic data: Automatically purged after 7 days.</li>
+              <li>Backups (including audio data): Retained for up to 30 days for disaster recovery.</li>
               <li>Backups (including audio data): Retained for up to 30 days for disaster recovery.</li>
             </ul>
             <h2 className="text-xl font-semibold mt-6 mb-2">International Data Transfers</h2>
@@ -223,7 +254,7 @@ export default function PrivacyPolicy() {
             </p>
             <h2 className="text-xl font-semibold mt-6 mb-2">Subprocessors</h2>
             <p className="mb-4 text-gray-700 dark:text-gray-200">
-              We use trusted third-party service providers (subprocessors) for hosting, analytics, payment processing, and AI services including audio transcription. Key subprocessors include AssemblyAI (for audio transcription), cloud hosting providers, and payment processors. A current list is available upon request and will be published at <Link href="/subprocessors" className="text-blue-600 dark:text-blue-400 underline">/subprocessors</Link> (coming soon).
+              We use trusted third-party service providers (subprocessors) for hosting, analytics, payment processing, and AI services including audio transcription. Key subprocessors include AssemblyAI (for audio transcription), cloud hosting providers, and payment processors. A current list is available upon request and will be published at <Link href="/subprocessors" className="text-blue-600 dark:text-blue-400 underline">/subprocessors</Link>.
             </p>
             <h2 className="text-xl font-semibold mt-6 mb-2">Automated Decision-Making & Profiling</h2>
             <p className="mb-4 text-gray-700 dark:text-gray-200">

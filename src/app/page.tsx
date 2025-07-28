@@ -29,6 +29,9 @@ export default function Home() {
           Read Our Philosophy
         </Link>
       </div>
+      <div className="bg-yellow-100 dark:bg-yellow-900/50 py-2 px-6 text-center text-sm text-yellow-800 dark:text-yellow-200">
+        <span>Introducing Agent Mode: get advanced command-driven AI interactions in <Link href="/edubot" className="underline font-medium hover:text-yellow-900 dark:hover:text-yellow-100">EduBot</Link>!</span>
+      </div>
 
       <section className="max-w-6xl mx-auto px-6 pt-20 pb-16 text-center">
         <h1 className="text-5xl font-bold mb-6">Your Ultimate Study Companion</h1>

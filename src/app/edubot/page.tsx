@@ -52,6 +52,7 @@ function EduBotContent() {
   const [fileId, setFileId] = useState<string | null>(null);
   const [context, setContext] = useState('');
   const [accessAllowed, setAccessAllowed] = useState(true);
+  const [agentMode, setAgentMode] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -167,15 +168,27 @@ function EduBotContent() {
           </div>
 
           <div className="p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="agent-mode"
+                checked={agentMode}
+                onChange={() => setAgentMode(prev => !prev)}
+                disabled={!accessAllowed}
+                className="h-5 w-5 text-blue-600 rounded"
+              />
+              <label htmlFor="agent-mode" className="text-sm font-medium">Agent Mode</label>
+            </div>
+            
             {errorMessage && (
               <div className="bg-red-50 dark:bg-red-900/20 text-red-600 p-4 rounded-lg mb-6">
                 {errorMessage}
               </div>
             )}
             
-            {activeTab === 'chat' && <ChatWithAI accessAllowed={accessAllowed} authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} handleFileUpload={handleFileUpload} context={context} setContext={setContext} />} 
-            {activeTab === 'flashcards' && <GenerateFlashcards accessAllowed={accessAllowed} authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} />}
-            {activeTab === 'quiz' && <GenerateQuiz accessAllowed={accessAllowed} authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} />}
+            {activeTab === 'chat' && <ChatWithAI accessAllowed={accessAllowed} authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} handleFileUpload={handleFileUpload} context={context} setContext={setContext} agentMode={agentMode} />} 
+            {activeTab === 'flashcards' && <GenerateFlashcards accessAllowed={accessAllowed} authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} agentMode={agentMode} />}
+            {activeTab === 'quiz' && <GenerateQuiz accessAllowed={accessAllowed} authToken={authToken} setIsLoading={setIsLoading} setErrorMessage={setErrorMessage} fileId={fileId} agentMode={agentMode} />}
           </div>
         </div>
       </main>
@@ -201,7 +214,7 @@ function EduBotContent() {
   );
 }
 
-function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, fileId, handleFileUpload, context, setContext }: {
+function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, fileId, handleFileUpload, context, setContext, agentMode }: {
   accessAllowed: boolean,
   authToken: string | null,
   setIsLoading: (loading: boolean) => void,
@@ -210,17 +223,43 @@ function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, f
   handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void,
   context: string,
   setContext: (ctx: string) => void,
+  agentMode: boolean
 }) {
   const [prompt, setPrompt] = useState('');
   const [chatHistory, setChatHistory] = useState<{ question: string; answer: string; sources?: string[]; memorySaved?: boolean; savedMemory?: Record<string, unknown> | null }[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const [pending, setPending] = useState<{ index: number; command: string } | null>(null);
 
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [chatHistory]);
+  
+  useEffect(() => {
+    if (!pending || !sessionId) return;
+    const interval = setInterval(async () => {
+      try {
+        const resp = await fetch(
+          `${API_BASE_URL}/edubot/agentCommandDone?command=${pending.command}&sessionId=${sessionId}`,
+          { headers: { Authorization: `Bearer ${authToken}` } }
+        );
+        const result = await resp.json();
+        if (resp.ok && result.done) {
+          setChatHistory(prev => {
+            const copy = [...prev];
+            copy[pending.index] = { ...copy[pending.index], answer: result.response || result.result };
+            return copy;
+          });
+          setPending(null);
+          clearInterval(interval);
+        }
+      } catch {
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [pending, sessionId, authToken]);
 
   useEffect(() => {
     if (!fileId || !authToken || context) return;
@@ -251,6 +290,7 @@ function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, f
           context: context,
           userId: JSON.parse(localStorage.getItem('userData') || '{}').userId || '',
           fileId: fileId,
+          agentMode: agentMode,
           sessionId: sessionId || undefined
         })
       });
@@ -262,6 +302,18 @@ function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, f
       }
 
       if (response.ok) {
+        try {
+          const parsed = JSON.parse(data.response as unknown as string);
+          if (parsed.agentCommand) {
+            setChatHistory(prev => {
+              const idx = prev.length;
+              setPending({ index: idx, command: parsed.agentCommand });
+              return [...prev, { question: userPrompt, answer: `Processing command: ${parsed.agentCommand}` }];
+            });
+            return;
+          }
+        } catch {
+        }
         setChatHistory(prev => [...prev, {
           question: userPrompt,
           answer: data.response,
@@ -321,7 +373,17 @@ function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, f
                   <div className="flex-1">
                     <p className="font-medium text-sm text-gray-500 dark:text-gray-400">EduBot</p>
                     <div className="mt-1 prose dark:prose-invert prose-sm max-w-none">
-                      <p>{chat.answer}</p>
+                      {chat.answer.startsWith('Processing command:') ? (
+                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                          <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                          </svg>
+                          <span>{chat.answer}</span>
+                        </div>
+                      ) : (
+                        <p>{chat.answer}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -392,7 +454,7 @@ function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, f
   );
 }
 
-function GenerateFlashcards({ accessAllowed, authToken, setIsLoading, setErrorMessage, fileId }: { accessAllowed: boolean, authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void, fileId: string | null }) {
+function GenerateFlashcards({ accessAllowed, authToken, setIsLoading, setErrorMessage, fileId, agentMode }: { accessAllowed: boolean, authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void, fileId: string | null, agentMode: boolean }) {
   const [topic, setTopic] = useState('');
   const [count, setCount] = useState(5);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -428,7 +490,8 @@ function GenerateFlashcards({ accessAllowed, authToken, setIsLoading, setErrorMe
           topic: topic,
           count: count,
           userId: JSON.parse(localStorage.getItem('userData') || '{}').userId || '',
-          fileId: fileId
+          fileId: fileId,
+          agentMode: agentMode
         })
       });
 
@@ -575,7 +638,7 @@ function GenerateFlashcards({ accessAllowed, authToken, setIsLoading, setErrorMe
   );
 }
 
-function GenerateQuiz({ accessAllowed, authToken, setIsLoading, setErrorMessage, fileId }: { accessAllowed: boolean, authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void, fileId: string | null }) {
+function GenerateQuiz({ accessAllowed, authToken, setIsLoading, setErrorMessage, fileId, agentMode }: { accessAllowed: boolean, authToken: string | null, setIsLoading: (loading: boolean) => void, setErrorMessage: (error: string) => void, fileId: string | null, agentMode: boolean }) {
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [questionCount, setQuestionCount] = useState(5);
@@ -615,7 +678,8 @@ function GenerateQuiz({ accessAllowed, authToken, setIsLoading, setErrorMessage,
           difficulty: difficulty,
           questionCount: questionCount,
           userId: JSON.parse(localStorage.getItem('userData') || '{}').userId || '',
-          fileId: fileId
+          fileId: fileId,
+          agentMode: agentMode
         })
       });
 
