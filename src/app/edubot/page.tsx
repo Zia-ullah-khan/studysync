@@ -168,16 +168,45 @@ function EduBotContent() {
           </div>
 
           <div className="p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="agent-mode"
-                checked={agentMode}
-                onChange={() => setAgentMode(prev => !prev)}
-                disabled={!accessAllowed}
-                className="h-5 w-5 text-blue-600 rounded"
-              />
-              <label htmlFor="agent-mode" className="text-sm font-medium">Agent Mode</label>
+            <div className="mb-4 flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 dark:text-blue-400">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                    <path d="M2 17l10 5 10-5"></path>
+                    <path d="M2 12l10 5 10-5"></path>
+                  </svg>
+                </div>
+                <div>
+                  <label htmlFor="agent-mode" className="text-sm font-semibold text-gray-900 dark:text-gray-100 cursor-pointer">
+                    Agent Mode
+                  </label>
+                </div>
+              </div>
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  id="agent-mode"
+                  checked={agentMode}
+                  onChange={() => setAgentMode(prev => !prev)}
+                  disabled={!accessAllowed}
+                  className="sr-only"
+                />
+                <label
+                  htmlFor="agent-mode"
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full cursor-pointer transition-colors duration-300 ease-in-out focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 ${
+                    agentMode
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-600'
+                      : 'bg-gray-300 dark:bg-gray-600'
+                  } ${!accessAllowed ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform duration-300 ease-in-out ${
+                      agentMode ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </label>
+              </div>
             </div>
             
             {errorMessage && (
