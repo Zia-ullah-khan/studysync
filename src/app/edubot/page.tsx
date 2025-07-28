@@ -85,6 +85,54 @@ function EduBotContent() {
     }
   }, [router, searchParams]);
 
+  useEffect(() => {
+    const fetchFileContent = async () => {
+      if (!fileId || !authToken || context) return;
+      
+      try {
+        setIsLoading(true);
+        console.log('Fetching transcript for fileId:', fileId);
+        const fileContentResponse = await axios.get(`${API_BASE_URL}/smartnotes/transcriptions/${fileId}`, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        console.log('Backend response:', fileContentResponse.data);
+        console.log('Response status:', fileContentResponse.status);
+        console.log('Response headers:', fileContentResponse.headers);
+
+        if (fileContentResponse.data && typeof fileContentResponse.data === 'string') {
+          const filename = fileId.replace(/^audioFile-\d+-\d+\./, '').replace(/\.txt$/, '');
+          console.log('Extracted filename:', filename);
+          setContext(`uploaded file, ${filename}, content of uploaded file: ${fileContentResponse.data}`);
+          console.log('Context set successfully');
+        } else if (fileContentResponse.data && fileContentResponse.data.content) {
+          const filename = fileId.replace(/^audioFile-\d+-\d+\./, '').replace(/\.txt$/, '');
+          console.log('Extracted filename:', filename);
+          setContext(`uploaded file, ${filename}, content of uploaded file: ${fileContentResponse.data.content}`);
+          console.log('Context set successfully');
+        } else {
+          console.error('No content found in response:', fileContentResponse.data);
+          setErrorMessage('Failed to retrieve file content. Please try again.');
+        }
+      } catch (error: unknown) {
+        console.error('Error fetching transcript:', error);
+        if (error instanceof Error) {
+          console.error('Error message:', error.message);
+          setErrorMessage(`Failed to retrieve file content. ${error.message}. Please try again.`);
+        } else {
+          console.error('Unknown error occurred');
+          setErrorMessage(`Failed to retrieve file content. Unknown error occurred. Please try again.`);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFileContent();
+  }, [fileId, authToken, context]);
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
@@ -258,37 +306,12 @@ function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, f
   const [chatHistory, setChatHistory] = useState<{ question: string; answer: string; sources?: string[]; memorySaved?: boolean; savedMemory?: Record<string, unknown> | null }[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const [pending, setPending] = useState<{ index: number; command: string } | null>(null);
 
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [chatHistory]);
-  
-  useEffect(() => {
-    if (!pending || !sessionId) return;
-    const interval = setInterval(async () => {
-      try {
-        const resp = await fetch(
-          `${API_BASE_URL}/edubot/agentCommandDone?command=${pending.command}&sessionId=${sessionId}`,
-          { headers: { Authorization: `Bearer ${authToken}` } }
-        );
-        const result = await resp.json();
-        if (resp.ok && result.done) {
-          setChatHistory(prev => {
-            const copy = [...prev];
-            copy[pending.index] = { ...copy[pending.index], answer: result.response || result.result };
-            return copy;
-          });
-          setPending(null);
-          clearInterval(interval);
-        }
-      } catch {
-      }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [pending, sessionId, authToken]);
 
   useEffect(() => {
     if (!fileId || !authToken || context) return;
@@ -331,18 +354,6 @@ function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, f
       }
 
       if (response.ok) {
-        try {
-          const parsed = JSON.parse(data.response as unknown as string);
-          if (parsed.agentCommand) {
-            setChatHistory(prev => {
-              const idx = prev.length;
-              setPending({ index: idx, command: parsed.agentCommand });
-              return [...prev, { question: userPrompt, answer: `Processing command: ${parsed.agentCommand}` }];
-            });
-            return;
-          }
-        } catch {
-        }
         setChatHistory(prev => [...prev, {
           question: userPrompt,
           answer: data.response,
@@ -402,17 +413,7 @@ function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, f
                   <div className="flex-1">
                     <p className="font-medium text-sm text-gray-500 dark:text-gray-400">EduBot</p>
                     <div className="mt-1 prose dark:prose-invert prose-sm max-w-none">
-                      {chat.answer.startsWith('Processing command:') ? (
-                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                          <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                          </svg>
-                          <span>{chat.answer}</span>
-                        </div>
-                      ) : (
-                        <p>{chat.answer}</p>
-                      )}
+                      <p>{chat.answer || 'Processing...'}</p>
                     </div>
                   </div>
                 </div>
@@ -433,6 +434,40 @@ function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, f
           </div>
         </div>
       </div>
+
+      {fileId && context.includes('uploaded file') && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 dark:text-blue-400">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14,2 14,8 20,8"></polyline>
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">File Context Loaded</h4>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                {context.split(',')[1]?.trim() || 'Audio transcript content is available for AI analysis'}
+              </p>
+              <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
+                File ID: {fileId}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setContext('');
+              }}
+              className="flex-shrink-0 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleChatSubmit} className="space-y-4">
       <div>
