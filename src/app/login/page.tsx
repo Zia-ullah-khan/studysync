@@ -110,7 +110,7 @@ function LoginContent() {
             });
           }
           
-          router.push('/dashboard');
+          router.push('/');
         } else {
           setErrorMessage(data.message || 'Signup failed');
         }
