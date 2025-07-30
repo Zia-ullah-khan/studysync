@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 const API_BASE_URL = process.env.NODE_ENV === 'development' 
   ? 'http://localhost:3001' 
-  : 'https://studysyncapi.onrender.com';
+  : 'https://studysyncapi.rfas.software/';
 
 type TranscriptionResponse = {
   transcript: string;

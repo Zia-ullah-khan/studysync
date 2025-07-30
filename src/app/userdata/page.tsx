@@ -55,7 +55,7 @@ export default function UserDataPage() {
       userId = "";
     }
     try {
-      const res = await fetch(`https://studysyncapi.onrender.com/userdata/DeleteAllUserData?id=${userId}`, {
+      const res = await fetch(`https://studysyncapi.rfas.software/userdata/DeleteAllUserData?id=${userId}`, {
         method: "DELETE",
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
@@ -97,7 +97,7 @@ export default function UserDataPage() {
       setLoading(false);
       return;
     }
-    fetch(`http://localhost:3001/userdata/GetAllUserData?id=${userId}`, {
+    fetch(`https://studysyncapi.rfas.software/userdata/GetAllUserData?id=${userId}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     })
       .then(async (res) => {

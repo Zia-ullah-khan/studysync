@@ -52,7 +52,7 @@ export default function PaymentProcessing() {
       amount,
       currency_code: "USD",
       no_shipping: "1",
-      return: "https://studysync.rfas.software/payment?success=1",
+      return: "https://studysyncapi.rfas.software/payment?success=1",
       cancel_return: typeof window !== "undefined" ? window.location.origin + "/payment?cancel=1" : "",
     }).toString();
     window.open(`https://www.paypal.com/cgi-bin/webscr?${params}`, "_self");

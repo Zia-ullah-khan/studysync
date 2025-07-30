@@ -6,7 +6,7 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.NODE_ENV === 'development' 
   ? 'http://localhost:3001' 
-  : 'http://studysyncapi.rfas.software/';
+  : 'https://studysyncapi.rfas.software/';
 
 type ChatResponse = {
   response: string;

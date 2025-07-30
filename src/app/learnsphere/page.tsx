@@ -62,7 +62,7 @@ export default function LearnSphere() {
         const recRes = await fetch(
           `${process.env.NODE_ENV === 'development'
             ? 'http://localhost:3001'
-            : 'https://studysyncapi.onrender.com'
+            : 'https://studysyncapi.rfas.software/'
           }/learnsphere/recommendations?userId=${userId}`,
           {
             headers: {
