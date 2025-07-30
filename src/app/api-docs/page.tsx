@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-const API_DOCS_URL = 'https://studysyncapi.rfas.software/';
+const API_DOCS_URL = 'https://studysyncapi.rfas.software';
 
 export default function ApiDocsPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
