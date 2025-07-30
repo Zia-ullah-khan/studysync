@@ -60,10 +60,7 @@ export default function LearnSphere() {
       if (!token || !userId) return;
       try {
         const recRes = await fetch(
-          `${process.env.NODE_ENV === 'development'
-            ? 'http://localhost:3001'
-            : 'https://studysyncapi.rfas.software'
-          }/learnsphere/recommendations?userId=${userId}`,
+          `https://studysyncapi.rfas.software/learnsphere/recommendations?userId=${userId}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`

@@ -1,8 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-const API_BASE_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:3001' 
-  : 'https://studysyncapi.rfas.software';
+const API_BASE_URL = 'https://studysyncapi.rfas.software';
 
 export async function login(req: NextApiRequest, res: NextApiResponse) {
   try {

@@ -4,9 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:3001' 
-  : 'https://studysyncapi.rfas.software';
+const API_BASE_URL = 'https://studysyncapi.rfas.software';
 
 type ChatResponse = {
   response: string;
