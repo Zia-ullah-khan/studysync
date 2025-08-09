@@ -141,7 +141,7 @@ function LoginContent() {
       <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
           <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-md text-sm dark:bg-yellow-900/30 dark:border-yellow-700/50 dark:text-yellow-300">
-            Note: Some requests might take a bit longer. Our servers sometimes take a short nap to save energy (and costs!). Thanks for your patience!
+            Good News! StudySync will now have 24/7 uptime with instant response times from our API. This means you can rely on StudySync for all your study needs without interruptions.
           </div>
           <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
             <div className="flex mb-8">

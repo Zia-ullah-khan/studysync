@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 
-const API_BASE_URL = 'https://studysyncapi.rfas.software';
+const API_BASE_URL = 'http://localhost:5000';
 
 type ChatResponse = {
   response: string;
@@ -257,6 +257,7 @@ function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, f
   const [sessionId, setSessionId] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const [pending, setPending] = useState<{ index: number; command: string } | null>(null);
+  const [isChatLoading, setIsChatLoading] = useState(false);
 
   useEffect(() => {
     if (chatEndRef.current) {
@@ -303,6 +304,7 @@ function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, f
     const userPrompt = prompt;
     setPrompt('');
     setIsLoading(true);
+    setIsChatLoading(true);
     setErrorMessage('');
 
     try {
@@ -337,6 +339,7 @@ function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, f
               setPending({ index: idx, command: parsed.agentCommand });
               return [...prev, { question: userPrompt, answer: `Processing command: ${parsed.agentCommand}` }];
             });
+            setIsChatLoading(false);
             return;
           }
         } catch {
@@ -359,6 +362,7 @@ function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, f
       }
     } finally {
       setIsLoading(false);
+      setIsChatLoading(false);
     }
   };
 
@@ -374,60 +378,75 @@ function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, f
       <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 h-96 overflow-y-auto mb-4 relative">
         <div className="space-y-6">
           <div>
-            {chatHistory.map((chat: { question: string; answer: string; sources?: string[]; memorySaved?: boolean; savedMemory?: Record<string, unknown> | null }, index: number) => (
-              <div key={index} className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="bg-blue-100 dark:bg-blue-900 rounded-full p-2 text-blue-600 dark:text-blue-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm text-gray-500 dark:text-gray-400">You</p>
-                    <p className="mt-1">{chat.question}</p>
-                  </div>
-                </div>
+            {isChatLoading ? (
+              <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 dark:text-gray-400">
+                <svg className="animate-spin h-8 w-8 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+                <span>Waiting for EduBot&apos;s response...</span>
+              </div>
+            ) : (
+              <>
+                {chatHistory.map((chat: { question: string; answer: string; sources?: string[]; memorySaved?: boolean; savedMemory?: Record<string, unknown> | null }, index: number) => (
+                  <div key={index} className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-blue-100 dark:bg-blue-900 rounded-full p-2 text-blue-600 dark:text-blue-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                          <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm text-gray-500 dark:text-gray-400">You</p>
+                        <p className="mt-1">{chat.question}</p>
+                      </div>
+                    </div>
 
-                <div className="flex items-start gap-3 relative">
-                  <div className="bg-green-100 dark:bg-green-900 rounded-full p-2 text-green-600 dark:text-green-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="flex items-start gap-3 relative">
+                      <div className="bg-green-100 dark:bg-green-900 rounded-full p-2 text-green-600 dark:text-green-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <path d="M12 16v-4"></path>
+                          <path d="M12 8h.01"></path>
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm text-gray-500 dark:text-gray-400">EduBot</p>
+                        <div className="mt-1 prose dark:prose-invert prose-sm max-w-none">
+                          {typeof chat.answer === 'string' && chat.answer.startsWith('Processing command:')
+                            ? (
+                              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                                <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                </svg>
+                                <span>{chat.answer}</span>
+                              </div>
+                            )
+                            : (
+                              <p>{chat.answer}</p>
+                            )
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {chatHistory.length === 0 && (
+                  <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 dark:text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4">
                       <circle cx="12" cy="12" r="10"></circle>
                       <path d="M12 16v-4"></path>
                       <path d="M12 8h.01"></path>
                     </svg>
+                    <p>Start a conversation with EduBot by asking a question below.</p>
+                    <p className="text-sm mt-2">Try: &quot;Explain the theory of relativity&quot; or &quot;How does photosynthesis work?&quot;</p>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm text-gray-500 dark:text-gray-400">EduBot</p>
-                    <div className="mt-1 prose dark:prose-invert prose-sm max-w-none">
-                      {chat.answer.startsWith('Processing command:') ? (
-                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                          <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                          </svg>
-                          <span>{chat.answer}</span>
-                        </div>
-                      ) : (
-                        <p>{chat.answer}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-            {chatHistory.length === 0 && (
-              <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 dark:text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M12 16v-4"></path>
-                  <path d="M12 8h.01"></path>
-                </svg>
-                <p>Start a conversation with EduBot by asking a question below.</p>
-                <p className="text-sm mt-2">Try: &quot;Explain the theory of relativity&quot; or &quot;How does photosynthesis work?&quot;</p>
-              </div>
+                )}
+                <div ref={chatEndRef} />
+              </>
             )}
-            <div ref={chatEndRef} />
           </div>
         </div>
       </div>
