@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect, useRef, Suspense } from 'react';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
-
+import Navbar from '@/components/navbar';
+import Footer from '@/components/footer';
 const API_BASE_URL = 'http://localhost:5000';
 
 type ChatResponse = {
@@ -123,17 +123,9 @@ function EduBotContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
+      <Navbar />
       <header className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/smartnotes" className="hover:text-blue-600 transition-colors">SmartNotes</Link>
-            <span className="relative flex items-center">
-              <Link href="/edubot" className="text-blue-600 font-medium">EduBot</Link>
-            </span>
-            <Link href="/learnsphere" className="hover:text-blue-600 transition-colors">LearnSphere</Link>
-          </nav>
-          
           <div className="flex items-center gap-4">
             <button onClick={() => router.push('/dashboard')} className="text-sm hover:underline">
               Dashboard
@@ -219,12 +211,7 @@ function EduBotContent() {
           </div>
         </div>
       </main>
-
-      <footer className="bg-white dark:bg-gray-800 py-6 border-t border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 text-center text-gray-500 dark:text-gray-400">
-          &copy; {new Date().getFullYear()} StudySync. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
 
       {isLoading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

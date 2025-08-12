@@ -1,28 +1,10 @@
 import Link from "next/link";
-
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-gray-900 dark:to-gray-800">
-      <nav className="flex items-center justify-between p-6">
-        <div className="flex items-center gap-2">
-          <div className="bg-blue-600 text-white p-2 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-              <path d="M2 17l10 5 10-5"></path>
-              <path d="M2 12l10 5 10-5"></path>
-            </svg>
-          </div>
-          <span className="text-xl font-bold">StudySync</span>
-        </div>
-        <div className="flex gap-6">
-          <a href="#features" className="hover:text-blue-600 transition-colors">Features</a>
-          <a href="#howitworks" className="hover:text-blue-600 transition-colors">How It Works</a>
-          <Link href="/login" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-            Get Started
-          </Link>
-        </div>
-      </nav>
-
+      <Navbar />
       <div className="bg-blue-100 dark:bg-blue-900/50 py-2 px-6 text-center text-sm text-blue-800 dark:text-blue-300">
         <span>Our motto &quot;Help, not Answer&quot;. <br/>Learn about our commitment to accessibility. </span>
         <Link href="/free-software" className="font-medium underline hover:text-blue-600 dark:hover:text-blue-200">
@@ -188,31 +170,7 @@ export default function Home() {
           Join us today and experience the future of studying with StudySync.
         </p>
       </section>
-
-      <footer className="bg-gray-100 dark:bg-gray-900 py-12">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center gap-2 mb-6 md:mb-0">
-              <div className="bg-blue-600 text-white p-2 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                  <path d="M2 17l10 5 10-5"></path>
-                  <path d="M2 12l10 5 10-5"></path>
-                </svg>
-              </div>
-              <span className="text-xl font-bold">StudySync</span>
-            </div>
-            <div className="flex flex-wrap justify-center gap-6 md:gap-8 mt-4 md:mt-0">
-              <Link href="/free-software" className="hover:text-blue-600 transition-colors text-sm">Our Philosophy</Link>
-              <Link href="/tos" className="hover:text-blue-600 transition-colors text-sm">Terms of Service</Link>
-              <Link href="/privacy" className="hover:text-blue-600 transition-colors text-sm">Privacy Policy</Link>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800 text-center text-gray-500 dark:text-gray-400">
-            &copy; {new Date().getFullYear()} StudySync. All rights reserved.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

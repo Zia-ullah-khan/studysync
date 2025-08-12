@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
+import Navbar from '@/components/navbar';
+import Footer from '@/components/footer';
 const API_DOCS_URL = 'https://studysyncapi.rfas.software';
 
 export default function ApiDocsPage() {
@@ -14,6 +15,7 @@ export default function ApiDocsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8 flex flex-col">
+      <Navbar />
       <div className="max-w-full mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 flex-grow flex flex-col">
         <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white text-center">API Documentation</h1>
         
@@ -31,6 +33,7 @@ export default function ApiDocsPage() {
           onLoad={() => setIsLoading(false)}
         />
       </div>
+      <Footer />
     </div>
   );
 }

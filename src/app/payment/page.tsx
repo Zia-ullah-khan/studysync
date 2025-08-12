@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 
 export default function PaymentProcessing() {
   const [tier, setTier] = useState("basic");
@@ -128,6 +129,7 @@ export default function PaymentProcessing() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
+      <Navbar />
       <div className="max-w-md mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mt-12">
         <h1 className="text-2xl font-bold mb-6 text-center">Subscribe to StudySync</h1>
         <div className="mb-4 p-3 rounded bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700/50 text-sm text-blue-800 dark:text-blue-300">
@@ -171,11 +173,7 @@ export default function PaymentProcessing() {
             </div>
           </>
         )}
-        <div className="mt-6 text-center">
-          <Link href="/" className="text-blue-600 dark:text-blue-400 underline">
-            Back to Home
-          </Link>
-        </div>
+        <Footer />
       </div>
     </div>
   );

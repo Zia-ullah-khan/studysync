@@ -1,7 +1,8 @@
 'use client';
 import React, { useRef, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 type AudioContextConstructor = typeof AudioContext;
 const getAudioContextClass = (): AudioContextConstructor => {
   if (typeof window === 'undefined') return AudioContext;
@@ -77,6 +78,11 @@ const VoicebotPage = () => {
   const aiSpeakingRef = useRef(false);
   const userStoppingRef = useRef(false);
   const userTurnEndedRef = useRef(false);
+  const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSpeechTimeRef = useRef<number>(0);
+  const isSpeakingRef = useRef(false);
+  const vadThreshold = 0.01;
+  const silenceTimeout = 1500;
 
   useEffect(() => {
     try {
@@ -225,12 +231,49 @@ const VoicebotPage = () => {
     const rec = recorderRef.current; if (!rec) return; rec.isRecording = false; setIsRecording(false); amplitudeRef.current = 0; setAmplitude(0); setPartialTranscript('');
     recordingActiveRef.current = false; pendingStartRef.current = false;
     userStoppingRef.current = true;
+    
+    isSpeakingRef.current = false;
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current);
+      silenceTimeoutRef.current = null;
+    }
+    
     if (wsRef.current && wsReadyRef.current && sessionIdRef.current) {
       try { wsRef.current.send(JSON.stringify({ type: 'stop', sessionId: sessionIdRef.current })); } catch { /* ignore */ }
     }
     setTimeout(()=>{
       if (wsRef.current) { try { wsRef.current.close(1000, 'user_stop'); } catch {} }
     },300);
+  };
+
+  const forceTurnEnd = () => {
+    if (!isRecording) return;
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current);
+      silenceTimeoutRef.current = null;
+    }
+    isSpeakingRef.current = false;
+    userTurnEndedRef.current = true;
+    
+    if (wsRef.current && wsReadyRef.current && sessionIdRef.current) {
+      try {
+        wsRef.current.send(JSON.stringify({ 
+          type: 'turn_end', 
+          sessionId: sessionIdRef.current,
+          reason: 'manual_trigger'
+        }));
+        if (DEBUG) console.log('[voicebot] Manually triggered turn end - mic stays active');
+      } catch (e) {
+        if (DEBUG) console.warn('[voicebot] Failed to send manual turn_end:', e);
+      }
+    }
+  };
+
+  const clearTranscripts = () => {
+    setTranscript([]);
+    setAiResponses([]);
+    setPartialTranscript('');
+    if (DEBUG) console.log('[voicebot] Cleared all transcripts');
   };
 
   const ensurePlaybackCtx = () => {
@@ -292,15 +335,55 @@ const VoicebotPage = () => {
         amplitudeRef.current = smooth;
         const now = performance.now();
         if (now - lastUiUpdateRef.current > UI_UPDATE_INTERVAL) { lastUiUpdateRef.current = now; setAmplitude(smooth); }
-        // Removed AI speaking check - always send audio frames for continuous recording
+
+        const currentTime = Date.now();
+        const isCurrentlySpeaking = smooth > vadThreshold && !aiSpeakingRef.current;
+
+        if (isCurrentlySpeaking) {
+          lastSpeechTimeRef.current = currentTime;
+          if (!isSpeakingRef.current) {
+            const wasTurnEnded = userTurnEndedRef.current;
+            isSpeakingRef.current = true;
+            if (userTurnEndedRef.current) {
+              userTurnEndedRef.current = false;
+              setPartialTranscript('');
+              if (DEBUG) console.log('[voicebot] User started new turn - resetting state');
+            } else if (DEBUG) console.log('[voicebot] User started speaking');
+            if (silenceTimeoutRef.current) { clearTimeout(silenceTimeoutRef.current); silenceTimeoutRef.current = null; }
+            if (wasTurnEnded && wsRef.current && wsReadyRef.current && sessionIdRef.current) {
+              const ts = Date.now();
+              if (ts - lastStartSentRef.current > 200) {
+                try {
+                  wsRef.current.send(JSON.stringify({ type: 'start', sessionId: sessionIdRef.current, resume: true, reason: 'auto_vad_new_turn' }));
+                  lastStartSentRef.current = ts;
+                  if (DEBUG) console.log('[voicebot] Auto start/resume sent for new VAD turn');
+                } catch {/* ignore */}
+              }
+            }
+          }
+        } else if (isSpeakingRef.current && !silenceTimeoutRef.current) {
+          silenceTimeoutRef.current = setTimeout(() => {
+            if (isSpeakingRef.current && !aiSpeakingRef.current) {
+              if (DEBUG) console.log('[voicebot] Turn end (silence) - mic stays active');
+              if (wsRef.current && wsReadyRef.current && sessionIdRef.current) {
+                try {
+                  wsRef.current.send(JSON.stringify({ type: 'turn_end', sessionId: sessionIdRef.current, reason: 'silence_detected' }));
+                  if (DEBUG) console.log('[voicebot] Sent turn_end');
+                } catch (e) { if (DEBUG) console.warn('[voicebot] turn_end send failed', e); }
+              }
+              isSpeakingRef.current = false;
+              userTurnEndedRef.current = true;
+            }
+            silenceTimeoutRef.current = null;
+          }, silenceTimeout);
+        }
+
         if (!wsRef.current) { if (DEBUG && Math.random() < 0.01) console.log('[voicebot] skip frame: no ws'); return; }
         const int16 = float32ToInt16(channelData);
         if (wsReadyRef.current) {
-            try { wsRef.current.send(int16.buffer); } catch { if (DEBUG) console.warn('[voicebot] send failed'); }
-            if (DEBUG && Math.random() < 0.01) console.log('[voicebot] frame sent bytes', int16.byteLength * 2);
+          try { wsRef.current.send(int16.buffer); } catch { if (DEBUG) console.warn('[voicebot] send failed'); }
         } else {
-            pendingAudioFramesRef.current.push(int16);
-            if (DEBUG && Math.random() < 0.01) console.log('[voicebot] queued frame (ws not ready) Q=', pendingAudioFramesRef.current.length);
+          pendingAudioFramesRef.current.push(int16);
         }
       };
       source.connect(scriptNode);
@@ -341,18 +424,42 @@ const VoicebotPage = () => {
         break;
       case 'partial_transcript':
       case 'realtime_transcript':
-        if (typeof m.text === 'string') setPartialTranscript(m.text);
+        if (typeof m.text === 'string') {
+          const newText = m.text;
+          setPartialTranscript(prev => {
+            if (newText.length < prev.length || userTurnEndedRef.current) {
+              return newText;
+            }
+            if (prev && !newText.startsWith(prev)) {
+              return prev + ' ' + newText;
+            }
+            return newText;
+          });
+        }
         if (typeof (m as Record<string, unknown>).is_final === 'boolean' && (m as Record<string, unknown>).is_final) {
           userTurnEndedRef.current = false;
           if (DEBUG) console.log('[voicebot] user turn final (continuous streaming retained)');
         }
         break;
       case 'final_transcript':
-        if (typeof m.text === 'string') { const textStr = m.text; setTranscript(t => [...t, textStr]); setPartialTranscript(''); }
+        if (typeof m.text === 'string') { 
+          const textStr = m.text; 
+          setTranscript(t => [...t, textStr]); 
+          setPartialTranscript(prev => {
+            if (prev && textStr.includes(prev)) {
+              return '';
+            }
+            return prev;
+          });
+        }
         break;
       case 'ai_response_text':
       case 'ai_response':
-        if (typeof m.text === 'string') { const textStr = m.text; setAiResponses(r => [...r, textStr]); }
+        if (typeof m.text === 'string') { 
+          const textStr = m.text; 
+          setAiResponses(r => [...r, textStr]); 
+          if (DEBUG) console.log('[voicebot] AI response received - mic remains active');
+        }
         break;
       case 'ai_response_audio_chunk':
       case 'ai_audio': {
@@ -381,8 +488,17 @@ const VoicebotPage = () => {
       case 'ai_response_audio_end': {
         aiSpeakingRef.current = false;
         userTurnEndedRef.current = false;
-        if (DEBUG) console.log('[voicebot] ai_response_audio_end (continuous recording mode - no action needed)');
-        // No need to resume upstream since we're continuously recording
+        if (DEBUG) console.log('[voicebot] ai_response_audio_end (continuous recording mode - sending auto resume)');
+        if (wsRef.current && wsReadyRef.current && sessionIdRef.current) {
+          const now = Date.now();
+            if (now - lastStartSentRef.current > 150) {
+              try {
+                wsRef.current.send(JSON.stringify({ type: 'start', sessionId: sessionIdRef.current, resume: true, reason: 'post_ai_audio_end' }));
+                lastStartSentRef.current = now;
+                if (DEBUG) console.log('[voicebot] sent post_ai_audio_end resume');
+              } catch {/* ignore */}
+            }
+        }
         break;
       }
       case 'error':
@@ -413,11 +529,8 @@ const VoicebotPage = () => {
 
   useEffect(() => {
     if (!isRecording) return;
-    // Removed auto-resume logic since we're now continuously recording
     const id = setInterval(() => {
-      // Just keep the connection alive
       if (isRecording && wsRef.current && wsRef.current.readyState === WebSocket.OPEN && wsReadyRef.current && !userStoppingRef.current) {
-        // Connection is active and healthy
       }
     }, 5000);
     return () => clearInterval(id);
@@ -441,12 +554,15 @@ const VoicebotPage = () => {
 
   return (
     <div className="flex flex-col gap-4 h-full min-h-0 items-center justify-center p-4 text-center w-full max-w-3xl mx-auto">
+      <Navbar />
       <div className="flex items-center justify-center min-h-bloop min-w-bloop h-max w-max">
         <canvas ref={canvasRef} width={454} height={454} style={{ width: 227, height: 227 }} className={!isRecording ? 'opacity-60 transition-opacity' : 'transition-opacity'} />
       </div>
       <div className="flex gap-3 flex-wrap justify-center items-center">
         {!isRecording && !unsupported && (<button onClick={startRecording} className="px-5 py-2 rounded-md bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400">Start</button>)}
         {isRecording && (<button onClick={stopRecording} className="px-5 py-2 rounded-md bg-rose-600 text-white text-sm font-medium hover:bg-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-400">Stop</button>)}
+        {isRecording && (<button onClick={forceTurnEnd} className="px-3 py-1 rounded-md bg-orange-600 text-white text-xs font-medium hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-400">End Turn</button>)}
+        <button onClick={clearTranscripts} className="px-3 py-1 rounded-md bg-gray-600 text-white text-xs font-medium hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400">Clear</button>
         <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
           <input type="checkbox" checked={enableAI} onChange={e=>setEnableAI(e.target.checked)} /> AI
         </label>
@@ -472,7 +588,21 @@ const VoicebotPage = () => {
             if (DEBUG) console.log('[voicebot] audio element ended - continuous recording continues');
             aiSpeakingRef.current = false; 
             userTurnEndedRef.current = false; 
-            // No need to resume since we're continuously recording
+            if (wsRef.current && wsReadyRef.current && sessionIdRef.current) {
+              const now = Date.now();
+              if (now - lastStartSentRef.current > 150) {
+                try {
+                  wsRef.current.send(JSON.stringify({ type: 'start', sessionId: sessionIdRef.current, resume: true, reason: 'audio_element_end' }));
+                  lastStartSentRef.current = now;
+                  if (DEBUG) console.log('[voicebot] resume sent after audio element end');
+                } catch {/* ignore */}
+              }
+            }
+            try { 
+              if (recorderRef.current?.audioContext.state === 'suspended') {
+                recorderRef.current.audioContext.resume();
+              }
+            } catch {/* ignore */}
           }} onLoadedData={()=>{
             if (DEBUG) console.log('[voicebot] audio loaded, AI speaking (but mic continues recording)');
             aiSpeakingRef.current = true;
@@ -490,10 +620,16 @@ WebSocket Ready: ${wsReadyRef.current}
 Pending Audio Frames: ${pendingAudioFramesRef.current.length}
 AI Speaking: ${aiSpeakingRef.current}
 User Stopping: ${userStoppingRef.current}
-User Turn Ended: ${userTurnEndedRef.current}`}
+User Turn Ended: ${userTurnEndedRef.current}
+User Is Speaking: ${isSpeakingRef.current}
+Last Speech Time: ${new Date(lastSpeechTimeRef.current).toLocaleTimeString()}
+Silence Timeout Active: ${silenceTimeoutRef.current !== null}
+Current Amplitude: ${amplitude.toFixed(3)}
+VAD Threshold: ${vadThreshold}`}
           </pre>
         </div>
       )}
+      <Footer />
     </div>
   );
 };

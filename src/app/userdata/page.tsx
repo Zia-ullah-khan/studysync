@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { saveAs } from "file-saver";
-
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 interface UserFile {
   _id?: string;
   [key: string]: unknown;
@@ -114,6 +115,7 @@ export default function UserDataPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
+      <Navbar />
       <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mt-12">
         <h1 className="text-2xl font-bold mb-6 text-center">Your Stored Data</h1>
         {loading && <p>Loading...</p>}
@@ -261,6 +263,7 @@ export default function UserDataPage() {
           <p>No data found for your account.</p>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

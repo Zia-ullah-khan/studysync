@@ -1,17 +1,12 @@
 import Link from "next/link";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 
 export default function AgentModePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-gray-900 dark:to-gray-800">
-      <nav className="flex items-center justify-between p-6">
-        <Link href="/" className="text-xl font-bold">StudySync</Link>
-        <div className="flex gap-4">
-          <Link href="/" className="hover:text-blue-600 transition-colors">Home</Link>
-          <Link href="/signup" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-            Get Started
-          </Link>
-        </div>
-      </nav>
+      <Navbar />
+
 
       <section className="text-center px-6 py-20">
         <h1 className="text-5xl font-bold mb-4">Your Personal AI Assistant for Managing Lectures and Coursework</h1>
@@ -122,10 +117,7 @@ export default function AgentModePage() {
           </p>
         </div>
       </section>
-
-      <footer className="bg-gray-100 dark:bg-gray-900 py-8 text-center text-gray-500 dark:text-gray-400">
-        &copy; {new Date().getFullYear()} StudySync. All rights reserved.
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -3,8 +3,9 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-
-const API_BASE_URL = 'https://studysyncapi.rfas.software';
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
+const API_BASE_URL = 'http://localhost:5000';
 
 interface UserData {
   email: string;
@@ -125,18 +126,7 @@ function LoginContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
-      <header className="p-6">
-        <Link href="/" className="flex items-center gap-2 w-fit">
-          <div className="bg-blue-600 text-white p-2 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-              <path d="M2 17l10 5 10-5"></path>
-              <path d="M2 12l10 5 10-5"></path>
-            </svg>
-          </div>
-          <span className="text-xl font-bold">StudySync</span>
-        </Link>
-      </header>
+      <Navbar />
 
       <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
@@ -287,10 +277,7 @@ function LoginContent() {
           </div>
         </div>
       </main>
-
-      <footer className="py-6 text-center text-sm text-gray-500">
-        &copy; {new Date().getFullYear()} StudySync. All rights reserved.
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 
 export default function PrivacyPolicy() {
   const [isPirate, setIsPirate] = useState(false);
@@ -11,6 +13,7 @@ export default function PrivacyPolicy() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
+      <Navbar />
       <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mt-12">
         <div className="flex justify-end mb-4">
           <button
@@ -298,9 +301,7 @@ export default function PrivacyPolicy() {
             <p className="mb-2 text-gray-700 dark:text-gray-200">
               <strong>Our Data Protection Officer (DPO) is responsible for overseeing compliance with data protection laws.</strong> For privacy-related questions or to exercise your rights, please contact our DPO at <a href="mailto:khansokan1234@gmail.com" className="text-blue-600 dark:text-blue-400 underline">khansokan1234@gmail.com</a>.
             </p>
-            <div className="mt-8 text-center">
-              <Link href="/" className="text-blue-600 dark:text-blue-400 underline">Back to Home</Link>
-            </div>
+            <Footer />
           </div>
         )}
       </div>

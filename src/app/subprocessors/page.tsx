@@ -1,9 +1,10 @@
 "use client";
-import Link from "next/link";
-
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 export default function Subprocessors() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
+      <Navbar />
       <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mt-12">
         <div className="mb-4 text-right text-xs text-gray-500 dark:text-gray-400">
           <span>Last updated: July 28, 2025 &nbsp;|&nbsp; Version 1.1<br />Effective date: July 28, 2025</span>
@@ -264,13 +265,7 @@ export default function Subprocessors() {
           If you have questions about our subprocessors or data processing practices, please contact our Data Protection Officer at <a href="mailto:khansokan1234@gmail.com" className="text-blue-600 dark:text-blue-400 underline">khansokan1234@gmail.com</a>.
         </p>
 
-        <div className="mt-8 text-center space-x-4">
-          <Link href="/privacy" className="text-blue-600 dark:text-blue-400 underline">Privacy Policy</Link>
-          <span className="text-gray-400">|</span>
-          <Link href="/tos" className="text-blue-600 dark:text-blue-400 underline">Terms of Service</Link>
-          <span className="text-gray-400">|</span>
-          <Link href="/" className="text-blue-600 dark:text-blue-400 underline">Back to Home</Link>
-        </div>
+        <Footer />
       </div>
     </div>
   );

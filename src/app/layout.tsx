@@ -14,7 +14,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "StudySync - Your Ultimate Study Companion",
-  description: "StudySync combines AI-powered chat, lecture transcription, and personalized learning insights to help you study smarter, not harder.",
+  description:
+    "StudySync combines AI-powered chat, lecture transcription, and personalized learning insights to help you study smarter, not harder.",
+  icons: {
+    icon: "/logo.svg",
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
+  },
 };
 
 export default function RootLayout({
@@ -27,7 +33,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <main className="min-h-screen">{children}</main>
       </body>
     </html>
   );

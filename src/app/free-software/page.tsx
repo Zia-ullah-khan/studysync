@@ -1,22 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import Navbar from '@/components/navbar';
+import Footer from '@/components/footer';
+
 
 export default function PhilosophyPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
-      <header className="p-6">
-        <Link href="/" className="flex items-center gap-2 w-fit">
-          <div className="bg-blue-600 text-white p-2 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-              <path d="M2 17l10 5 10-5"></path>
-              <path d="M2 12l10 5 10-5"></path>
-            </svg>
-          </div>
-          <span className="text-xl font-bold">StudySync</span>
-        </Link>
-      </header>
+      <Navbar />
 
       <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
         <div className="w-full max-w-2xl bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
@@ -66,10 +58,7 @@ export default function PhilosophyPage() {
           </div>
         </div>
       </main>
-
-      <footer className="py-6 text-center text-sm text-gray-500">
-        &copy; {new Date().getFullYear()} StudySync. All rights reserved.
-      </footer>
+      <Footer />
     </div>
   );
 }

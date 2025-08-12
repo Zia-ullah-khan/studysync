@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
-
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 export default function TermsOfService() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
+      <Navbar />
       <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mt-12">
         <div className="mb-4 text-right text-xs text-gray-500 dark:text-gray-400">
           <span>Last updated: July 28, 2025 &nbsp;|&nbsp; Version 1.3<br />Effective date: July 28, 2025</span>
@@ -207,9 +209,7 @@ export default function TermsOfService() {
         <p className="mb-4 text-gray-700 dark:text-gray-200">
           These Terms (together with all linked policies) constitute the entire agreement between you and StudySync regarding the Services and supersede all prior agreements. Headings are for convenience only and do not affect interpretation.
         </p>
-        <div className="mt-8 text-center">
-          <Link href="/" className="text-blue-600 dark:text-blue-400 underline">Back to Home</Link>
-        </div>
+        <Footer />
       </div>
     </div>
   );
