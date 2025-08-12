@@ -30,7 +30,7 @@ type WSMessage =
   | WSBase;
 
 const SAMPLE_RATE = 16000;
-const WS_BASE = 'wss://studysyncapi.rfas.software:5000';
+const WS_BASE = 'wss://studysyncapi.rfas.software';
 const DEBUG = true;
 
 const VoicebotPage = () => {
