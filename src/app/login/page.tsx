@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = 'https://studysyncapi.rfas.software:5000';
 
 interface UserData {
   email: string;
