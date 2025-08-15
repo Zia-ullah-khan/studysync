@@ -14,7 +14,7 @@ export default function Homepage3() {
   const ctaRef = useRef<HTMLDivElement | null>(null);
   const featuresRefs = useRef<HTMLDivElement[]>([]);
   const [health, setHealth] = useState<"healthy" | "degraded" | "down" | "unknown">("unknown");
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://studysyncapi.rfas.software";
+  const API_BASE_URL = "https://studysyncapi.rfas.software";
   const features = useMemo(
     () => [
       {
@@ -188,7 +188,7 @@ export default function Homepage3() {
     };
 
     try {
-      es = new EventSource(`${API_BASE_URL}/health/stream`, { withCredentials: false });
+      es = new EventSource(`https://studysyncapi.rfas.software/health`, { withCredentials: false });
       es.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);

@@ -25,6 +25,16 @@ function LoginContent() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [Auth2, setAuth2] = useState<boolean | null>(null);
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  
+  useEffect(() => {
+    if (searchParams.get('auth2')) {
+      setAuth2(searchParams.get('auth2') === 'true');
+      //login?auth2=true&redirect=test
+      setRedirectUrl(searchParams.get('redirect') || null);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (searchParams.get('signup') === 'true') {
@@ -77,7 +87,15 @@ function LoginContent() {
               name: data.name || data.user?.name || email.split('@')[0]
             });
           }
-          router.push('/');
+          if (redirectUrl && Auth2) {
+            const redirect = new URL(redirectUrl, window.location.origin);
+            redirect.searchParams.set('token', data.token);
+            router.push(redirect.toString());
+            console.log('Redirecting to:', redirect.toString(), "with token:", data.token );
+          } else{
+            router.push('/');
+          }
+          
         } else {
           setErrorMessage(data.message || 'Login failed');
         }
@@ -133,6 +151,12 @@ function LoginContent() {
           <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-md text-sm dark:bg-yellow-900/30 dark:border-yellow-700/50 dark:text-yellow-300">
             Good News! StudySync will now have 24/7 uptime with instant response times from our API. This means you can rely on StudySync for all your study needs without interruptions.
           </div>
+          {/* Add auth2 name display if available */}
+          {Auth2 && (
+            <div className="mb-4 p-3 bg-blue-100 border border-blue-300 text-blue-800 rounded-md text-sm dark:bg-blue-900/30 dark:border-blue-700/50 dark:text-blue-300">
+              Auth2 by: {Auth2}!
+            </div>
+          )}
           <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
             <div className="flex mb-8">
               <button 
