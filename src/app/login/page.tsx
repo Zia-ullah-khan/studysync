@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-const API_BASE_URL = 'https://studysyncapi.rfas.software';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 interface UserData {
   email: string;
@@ -76,10 +76,15 @@ function LoginContent() {
             localStorage.setItem('subscriptionTier', data.user?.subscriptionTier || data.subscriptionTier || '');
             localStorage.setItem('isLoggedIn', 'true');
             localStorage.setItem('loginEmail', email);
+            if (data.googleCalander && data.googleCalander.accessToken) {
+              localStorage.setItem('googleCalanderAccessToken', data.googleCalander.accessToken);
+              localStorage.setItem('googleCalanderExpiresAt', data.googleCalander.expiresAt);
+            }
             if (data.token) {
               localStorage.setItem('authToken', data.token);
             }
           }
+          console.log('Login successful:', data);
           if (data.token) {
             saveAuthData(data.token, {
               email,
@@ -93,7 +98,7 @@ function LoginContent() {
             router.push(redirect.toString());
             console.log('Redirecting to:', redirect.toString(), "with token:", data.token );
           } else{
-            router.push('/');
+            //router.push('/');
           }
           
         } else {

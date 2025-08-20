@@ -4,7 +4,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
-const API_BASE_URL = 'http://localhost:5000';
+import ReactMarkdown, { type Components } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 type ChatResponse = {
   response: string;
@@ -246,6 +252,35 @@ function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, f
   const [pending, setPending] = useState<{ index: number; command: string } | null>(null);
   const [isChatLoading, setIsChatLoading] = useState(false);
 
+  const markdownComponents: Components = {
+    code({ className, children, ...props }) {
+      const match = /language-(\w+)/.exec(className || '');
+      if (match) {
+        return (
+          <SyntaxHighlighter
+            style={oneDark as Record<string, React.CSSProperties>}
+            language={match[1]}
+            PreTag="div"
+          >
+            {String(children).replace(/\n$/, '')}
+          </SyntaxHighlighter>
+        );
+      }
+      return (
+        <code className={className} {...props}>
+          {children}
+        </code>
+      );
+    },
+    a({ href, children, ...props }) {
+      return (
+        <a href={typeof href === 'string' ? href : undefined} target="_blank" rel="noopener noreferrer" className="underline text-blue-600" {...props}>
+          {children}
+        </a>
+      );
+    },
+  };
+
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -412,7 +447,12 @@ function ChatWithAI({ accessAllowed, authToken, setIsLoading, setErrorMessage, f
                               </div>
                             )
                             : (
-                              <p>{chat.answer}</p>
+                              <ReactMarkdown
+                                remarkPlugins={[remarkGfm, remarkBreaks]}
+                                components={markdownComponents}
+                              >
+                                {typeof chat.answer === 'string' ? chat.answer.replace(/\\n/g, '\n') : String(chat.answer)}
+                              </ReactMarkdown>
                             )
                           }
                         </div>

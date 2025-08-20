@@ -45,6 +45,12 @@ export default function AgentModePage() {
             <h3 className="text-xl font-semibold mb-2">Detailed Info</h3>
             <p><code>getCanvasAssignmentDetails</code></p>
           </div>
+          <div>
+            <h3 className="text-xl font-semibold mb-2">Calendar Integration</h3>
+            <p>
+              <code>getCalendarEvents</code>
+            </p>
+          </div>
         </div>
       </section>
 
