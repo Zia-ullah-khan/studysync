@@ -98,7 +98,7 @@ function LoginContent() {
             router.push(redirect.toString());
             console.log('Redirecting to:', redirect.toString(), "with token:", data.token );
           } else{
-            //router.push('/');
+            router.push('/');
           }
           
         } else {
