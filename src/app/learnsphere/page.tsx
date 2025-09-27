@@ -59,7 +59,7 @@ export default function LearnSphere() {
       if (!token || !userId) return;
       try {
         const recRes = await fetch(
-          `https://studysyncapi.rfas.software/learnsphere/recommendations?userId=${userId}`,
+          `http://10.200.71.45:5000/learnsphere/recommendations?userId=${userId}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://10.200.71.45:5000";
 
 type TranscriptionResponse = {
   transcript: string;
@@ -350,7 +350,7 @@ export default function SmartNotes() {
         console.log('Session started with ID:', newSessionId);
 
         const wsUrl = process.env.NODE_ENV === 'development' 
-          ? 'ws://localhost:3001/recordings/socket' 
+          ? 'ws://localhost:5000/recordings/socket' 
           : websocketUrl;
 
         console.log('Connecting to WebSocket:', wsUrl);
@@ -359,6 +359,20 @@ export default function SmartNotes() {
 
         ws.onopen = () => {
           console.log('WebSocket connected');
+          setIsWebSocketReady(true);
+          // Send init message now that the socket is confirmed open
+          const initMessage = {
+            type: 'init',
+            sessionId: newSessionId,
+            userId,
+            authToken
+          };
+          console.log('Sending init message after connection open:', initMessage);
+          try {
+            ws.send(JSON.stringify(initMessage));
+          } catch (e) {
+            console.error('Failed to send init message:', e);
+          }
         };
 
         ws.onclose = (event) => {
@@ -381,20 +395,8 @@ export default function SmartNotes() {
           setErrorMessage('WebSocket connection error');
         };
 
+        // Removed premature init send here (was causing: WebSocket not open when trying to send init message)
         await setupAudioRecording(ws, newSessionId);
-        
-        if (ws.readyState === WebSocket.OPEN) {
-          const initMessage = {
-            type: 'init',
-            sessionId: newSessionId,
-            userId,
-            authToken
-          };
-          console.log('Sending init message after setup:', initMessage);
-          ws.send(JSON.stringify(initMessage));
-        } else {
-          console.error('WebSocket not open when trying to send init message');
-        }
 
       } catch (error) {
         console.error('Error starting live transcription:', error);
@@ -511,13 +513,6 @@ export default function SmartNotes() {
                     setLiveTranscript(prev => {
                       const newTranscript = prev + (prev ? ' ' : '') + data.text;
                       console.log('Final realtime transcript updated to:', newTranscript);
-                      return newTranscript;
-                    });
-                  } else {
-                    setLiveTranscript(prev => {
-                      const baseTranscript = prev.replace(/ \[LIVE\].*$/, '');
-                      const newTranscript = baseTranscript + (baseTranscript ? ' ' : '') + '[LIVE] ' + data.text;
-                      console.log('Interim realtime transcript updated to:', newTranscript);
                       return newTranscript;
                     });
                   }
